@@ -5,6 +5,7 @@ var passport = require('passport')
 var mongoose = require('mongoose')
 var cors = require('cors')
 var session = require('express-session')
+var apiRouter = require('./router/apiRouter')
 
 require('dotenv').config()
 
@@ -52,7 +53,7 @@ const local = new LocalStrategy((username, password, done) => {
 passport.use("local", local)
 
 //Add Routing File List on Middleware
-app.use('/', apiRouter(passport))
+app.use('/', apiRouter)
 
 //Start Server
 PORT=process.env.PORT
