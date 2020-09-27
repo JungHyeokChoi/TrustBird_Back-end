@@ -8,11 +8,13 @@ CHANNEL_NAME=mychannel
 function printHelp() {
   echo "Usage: "
   echo "  network.sh <mode>"
-  echo "    <mode> - one of 'up', 'down', 'restart', 'generate'"
+  echo "    <mode> - one of 'up', 'down', 'restart', 'generate', 'explorerUp', 'explorerDown'"
   echo "      - 'up' - bring up the network with docker-compose up"
   echo "      - 'down' - clear the network with docker-compose down"
   echo "      - 'restart' - restart the network"
   echo "      - 'generate' - generate required certificates and genesis block"
+  echo "      - 'explorerUp' - bring up the hyperledger explorer with docker-compose up"
+  echo "      - 'explorerStop' - stop the hyperledger explorer with docker-compose down"
   echo "    -c <channel name> - channel name to use (defaults to \"mychannel\")"
   echo
   echo "Taking all defaults:"
@@ -83,7 +85,8 @@ function networkDown() {
     echo
     echo "===================== Tear down running network ====================="
     echo
-    docker-compose -f $COMPOSE_FILE -f $COMPOSE_FILE_COUCH -f $COMPOSE_FILE_CA down --volumes --remove-orphans
+    
+    docker-compose -f $COMPOSE_FILE -f $COMPOSE_FILE_COUCH -f $COMPOSE_FILE_CA -f $COMPOSE_EXPLORER down -v
 
     if [ "$MODE" != "restart" ]; then
       #Cleanup the chaincode containers
@@ -96,6 +99,9 @@ function networkDown() {
       rm -rf crypto-config
       rm -f docker-compose-ca.yaml
       rm -f connection.yaml
+      
+      # Remove hyperledger-explorer.json
+      rm -f ./explorer/connection-profile/hyperledger-explorer.json
     fi
 }
 
@@ -203,9 +209,44 @@ function generateChannel() {
     echo
 }
 
+function explorerUp() {
+  echo
+  echo "===================== Create Hyperledger Explorer containers ====================="
+  echo
+  
+  if [ ! -e "explorer/connection-profile/hyperledger-explorer.json" ]; then
+    echo "CA Key file & IPAddress exchange"
+    cp ./base/hyperledger-explorer-base.json ./explorer/connection-profile/hyperledger-explorer.json
+    
+    PRIV_KEY=$(ls crypto-config/peerOrganizations/org1.example.com/users/Admin@org1.example.com/msp/keystore/ | grep _sk)
+    sed -i "s/ORG1_ADMIN_PRIVATE_KEY/${PRIV_KEY}/g" ./explorer/connection-profile/hyperledger-explorer.json
+
+    IPADDRESS=$(docker inspect orderer.example.com | awk 'NR == 276 {print $2}' | tr -d '",')
+    sed -i "s/ORDERER_IP/${IPADDRESS}/g" ./explorer/connection-profile/hyperledger-explorer.json
+    IPADDRESS=$(docker inspect peer0.org1.example.com | awk 'NR == 286 {print $2}' | tr -d '",')
+    sed -i "s/PEER0ORG1_IP/${IPADDRESS}/g" ./explorer/connection-profile/hyperledger-explorer.json
+    IPADDRESS=$(docker inspect ca_peerOrg1 | awk 'NR == 235 {print $2}' | tr -d '",')
+    sed -i "s/CAORG1_IP/${IPADDRESS}/g" ./explorer/connection-profile/hyperledger-explorer.json
+  fi
+
+  docker-compose -f $COMPOSE_EXPLORER up -d explorerdb.mynetwork.com
+  sleep 10
+
+  docker-compose -f $COMPOSE_EXPLORER up -d explorer.mynetwork.com
+}
+
+function explorerStop() {
+  echo
+  echo "===================== Stop running Hyperledger Explorer ====================="
+  echo
+
+  docker-compose -f $COMPOSE_EXPLORER stop
+}
+
 COMPOSE_FILE=docker-compose-cli.yaml
 COMPOSE_FILE_COUCH=docker-compose-couch.yaml
 COMPOSE_FILE_CA=docker-compose-ca.yaml
+COMPOSE_EXPLORER=docker-compose-explorer.yaml
 
 CHANNEL_NAME="mychannel"
 
@@ -223,17 +264,21 @@ done
 
 MODE=$1
 
-if [ "${MODE}" == "up" ]; then #Create the network using docker compose
+if [ "${MODE}" == "up" ]; then # Create the network using docker compose
   networkUp
-elif [ "${MODE}" == "down" ]; then ## Clear the network
+elif [ "${MODE}" == "down" ]; then # Clear the network
   networkDown
-elif [ "${MODE}" == "generate" ]; then ## Generate Artifacts
+elif [ "${MODE}" == "generate" ]; then # Generate Artifacts
   generateCerts
   replacePrivateKey
   generateChannel
-elif [ "${MODE}" == "restart" ]; then ## Restart the network
+elif [ "${MODE}" == "restart" ]; then # Restart the network
   networkDown
   networkUp
+elif [ "${MODE}" == "explorerUp" ]; then # Create the hyperledger explorer using docker compose
+  explorerUp
+elif [ "${MODE}" == "explorerStop" ]; then # Clear the hyperledger explorer
+  explorerStop
 else
   printHelp
   exit 1
