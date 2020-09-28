@@ -6,7 +6,7 @@ networks:
 services:
   couchdb1:
     container_name: couchdb1
-    image: hyperledger/fabric-couchdb
+    image: hyperledger/fabric-couchdb:0.4.18
     environment:
       - COUCHDB_USER=
       - COUCHDB_PASSWORD=
@@ -25,7 +25,7 @@ services:
       
   couchdb2:
     container_name: couchdb2
-    image: hyperledger/fabric-couchdb
+    image: hyperledger/fabric-couchdb:0.4.18
     environment:
       - COUCHDB_USER=
       - COUCHDB_PASSWORD=
@@ -44,7 +44,7 @@ services:
 
   couchdb3:
     container_name: couchdb3
-    image: hyperledger/fabric-couchdb
+    image: hyperledger/fabric-couchdb:0.4.18
     environment:
       - COUCHDB_USER=
       - COUCHDB_PASSWORD=
@@ -63,7 +63,7 @@ services:
 
   couchdb4:
     container_name: couchdb4
-    image: hyperledger/fabric-couchdb
+    image: hyperledger/fabric-couchdb:0.4.18
     environment:
       - COUCHDB_USER=
       - COUCHDB_PASSWORD=
@@ -82,7 +82,7 @@ services:
 
   couchdb5:
     container_name: couchdb5
-    image: hyperledger/fabric-couchdb
+    image: hyperledger/fabric-couchdb:0.4.18
     environment:
       - COUCHDB_USER=
       - COUCHDB_PASSWORD=
@@ -101,7 +101,7 @@ services:
 
   couchdb6:
     container_name: couchdb6
-    image: hyperledger/fabric-couchdb
+    image: hyperledger/fabric-couchdb:0.4.18
     environment:
       - COUCHDB_USER=
       - COUCHDB_PASSWORD=
@@ -120,7 +120,7 @@ services:
 
   couchdb7:
     container_name: couchdb7
-    image: hyperledger/fabric-couchdb
+    image: hyperledger/fabric-couchdb:0.4.18
     environment:
       - COUCHDB_USER=
       - COUCHDB_PASSWORD=
@@ -139,7 +139,7 @@ services:
 
   couchdb8:
     container_name: couchdb8
-    image: hyperledger/fabric-couchdb
+    image: hyperledger/fabric-couchdb:0.4.18
     environment:
       - COUCHDB_USER=
       - COUCHDB_PASSWORD=
@@ -158,7 +158,7 @@ services:
 
   couchdb9:
     container_name: couchdb9
-    image: hyperledger/fabric-couchdb
+    image: hyperledger/fabric-couchdb:0.4.18
     environment:
       - COUCHDB_USER=
       - COUCHDB_PASSWORD=

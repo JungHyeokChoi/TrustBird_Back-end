@@ -38,7 +38,7 @@ services:
       - couchdb10
   couchdb10:
     container_name: couchdb10
-    image: hyperledger/fabric-couchdb
+    image: hyperledger/fabric-couchdb:0.4.18
     environment:
       - COUCHDB_USER=
       - COUCHDB_PASSWORD=
@@ -76,7 +76,7 @@ services:
       - couchdb11
   couchdb11:
     container_name: couchdb11
-    image: hyperledger/fabric-couchdb
+    image: hyperledger/fabric-couchdb:0.4.18
     environment:
       - COUCHDB_USER=
       - COUCHDB_PASSWORD=
@@ -114,7 +114,7 @@ services:
       - couchdb12
   couchdb12:
     container_name: couchdb12
-    image: hyperledger/fabric-couchdb
+    image: hyperledger/fabric-couchdb:0.4.18
     environment:
       - COUCHDB_USER=
       - COUCHDB_PASSWORD=
@@ -125,7 +125,7 @@ services:
 
   cli_Org4:
     container_name: cli_Org4
-    image: hyperledger/fabric-tools
+    image: hyperledger/fabric-tools:1.4.4
     tty: true
     stdin_open: true
     environment:
@@ -157,7 +157,7 @@ services:
       - basic
   
   ca3:
-    image: hyperledger/fabric-ca
+    image: hyperledger/fabric-ca:1.4.4
     environment:
       - FABRIC_CA_HOME=/etc/hyperledger/fabric-ca-server
       - FABRIC_CA_SERVER_CA_NAME=ca-org4
