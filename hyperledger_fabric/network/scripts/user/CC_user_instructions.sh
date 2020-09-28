@@ -27,7 +27,7 @@ echo
 
 # Invoke chaincode on peer0.org1 and peer0.org2 peer0.org3
 echo "Sending invoke transaction on peer0.org1 peer0.org2 peer0.org3..."
-chaincodeInvoke "0 1 0 2 0 3" "addUser Choi page1114@gmail.com qwer1234!@ 1992-10-11 man 01093104267"
+chaincodeInvoke "0 3 0 2 0 1" "addUser Choi page1114@gmail.com qwer1234!@ 1992-10-11 man 01093104267"
 
 sleep ${DELAY}
 
@@ -37,7 +37,7 @@ chaincodeQuery 0 1 "readUser page1114@gmail.com"
 
 # Invoke chaincode on peer0.org1 and peer0.org2 peer0.org3
 echo "Sending invoke transaction on peer0.org1 peer0.org2 peer0.org3..."
-chaincodeInvoke "0 1 0 2 0 3" "updateUser Park page1114@gmail.com qwer1234 1992-2-22 woman 01020022002"
+chaincodeInvoke "0 3 0 2 0 1" "updateUser Park page1114@gmail.com qwer1234 1992-2-22 woman 01020022002"
 
 sleep ${DELAY}
 
@@ -47,7 +47,7 @@ chaincodeQuery 0 1 "readUser page1114@gmail.com"
 
 # Invoke chaincode on peer0.org1 and peer0.org2 peer0.org3
 echo "Sending invoke transaction on peer0.org1 peer0.org2 peer0.org3..."
-chaincodeInvoke "0 1 0 2 0 3" "removeUser page1114@gmail.com"
+chaincodeInvoke "0 3 0 2 0 1" "removeUser page1114@gmail.com"
 
 
 echo

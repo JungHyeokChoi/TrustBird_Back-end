@@ -41,9 +41,9 @@ installChaincodeOnAllPeers () {
 }
 installChaincodeOnAllPeers
 
-# Instantiate chaincode on peer0.org1
-echo "Instantiating chaincode on peer0.org1..."
-instantiateChaincode 0 1 "AND Org1MSP.member Org2MSP.member Org3MSP.member"
+# Instantiate chaincode on peer0.org3
+echo "Instantiating chaincode on peer0.org3..."
+instantiateChaincode 0 3 "AND Org1MSP.member Org2MSP.member Org3MSP.member"
 
 sleep ${DELAY}
 

@@ -49,9 +49,9 @@ chaincodeInvoke "0 1 0 2 0 3" "addMaintenanceFee 한우리아파트관리소 333
 
 sleep ${DELAY}
 
-# Query on chaincode on peer0.org1
-echo "Querying chaincode on peer0.org1..."
-chaincodeQuery 0 1 "readMaintenanceFee 1234567890"
+# Query on chaincode on peer0.org3
+echo "Querying chaincode on peer0.org3..."
+chaincodeQuery 0 3 "readMaintenanceFee 1234567890"
 
 # Invoke chaincode on peer0.org1 and peer0.org2 peer0.org3
 echo "Sending invoke transaction on peer0.org1 peer0.org2 peer0.org3..."
@@ -59,9 +59,9 @@ chaincodeInvoke "0 1 0 2 0 3" "updateMaintenanceFee 한빛아파트관리소 123
 
 sleep ${DELAY}
 
-# Query on chaincode on peer0.org2
-echo "Querying chaincode on peer0.org2.."
-chaincodeQuery 0 2 "readMaintenanceFee 1234567890"
+# Query on chaincode on peer0.org3
+echo "Querying chaincode on peer0.org3.."
+chaincodeQuery 0 3 "readMaintenanceFee 1234567890"
 
 # Invoke chaincode on peer0.org1 and peer0.org2 peer0.org3
 echo "Sending invoke transaction on peer0.org1 peer0.org2 peer0.org3..."
