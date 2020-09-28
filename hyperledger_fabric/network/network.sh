@@ -24,189 +24,189 @@ function printHelp() {
 }
 
 function clearContainers() {
-    echo
-    echo "===================== Remove the local state ===================== "
-    rm -f ~/.hfc-key-store/*
-    
-    echo
-    echo "===================== Remove docker containers ====================="
-    echo
-    DOCKER_CONTAINER_IDS=$(docker ps -aq)
-    if [ -z "$DOCKER_CONTAINER_IDS" -o "$DOCKER_CONTAINER_IDS" == " " ]; then
-      echo "---- No containers available for deletion ----"
-    else
-      docker rm -f $DOCKER_CONTAINER_IDS
-    fi
+  echo
+  echo "===================== Remove the local state ===================== "
+  rm -f ~/.hfc-key-store/*
+  
+  echo
+  echo "===================== Remove docker containers ====================="
+  echo
+  DOCKER_CONTAINER_IDS=$(docker ps -aq)
+  if [ -z "$DOCKER_CONTAINER_IDS" -o "$DOCKER_CONTAINER_IDS" == " " ]; then
+    echo "---- No containers available for deletion ----"
+  else
+    docker rm -f $DOCKER_CONTAINER_IDS
+  fi
 }
 
 function removeUnwantedImages() {
-    echo
-    echo "===================== Remove docker imgaes ====================="
-    echo
+  echo
+  echo "===================== Remove docker imgaes ====================="
+  echo
 
-    DOCKER_IMAGE_IDS=$(docker images dev-* -q)
-    if [ -z "$DOCKER_IMAGE_IDS" -o "$DOCKER_IMAGE_IDS" == " " ]; then
-      echo "---- No images available for deletion ----"
-      echo
-    else
-      docker rmi -f $DOCKER_IMAGE_IDS
-    fi
+  DOCKER_IMAGE_IDS=$(docker images dev-* -q)
+  if [ -z "$DOCKER_IMAGE_IDS" -o "$DOCKER_IMAGE_IDS" == " " ]; then
+    echo "---- No images available for deletion ----"
+    echo
+  else
+    docker rmi -f $DOCKER_IMAGE_IDS
+  fi
 }
 
 function networkUp() {
-    set -ev
+  set -ev
 
-    if [ ! -e "crypto-config" ]; then
-        generateCerts
-        replacePrivateKey
-        generateChannel
-    fi
+  if [ ! -e "crypto-config" ]; then
+      generateCerts
+      replacePrivateKey
+      generateChannel
+  fi
 
-    echo
-    echo "===================== Create docker containers ====================="
-    echo
-    docker-compose -f $COMPOSE_FILE -f $COMPOSE_FILE_COUCH -f $COMPOSE_FILE_CA up -d
+  echo
+  echo "===================== Create docker containers ====================="
+  echo
+  docker-compose -f $COMPOSE_FILE -f $COMPOSE_FILE_COUCH -f $COMPOSE_FILE_CA up -d
 
-    echo
-    docker ps -a
+  echo
+  docker ps -a
 
-    export FABRIC_START_TIMEOUT=10
-    sleep ${FABRIC_START_TIMEOUT}
+  export FABRIC_START_TIMEOUT=10
+  sleep ${FABRIC_START_TIMEOUT}
 
-    # now run the end to end script
-    docker exec cli scripts/createToChannel.sh $CHANNEL_NAME
-    if [ $? -ne 0 ]; then
-        echo "ERROR !!!! Test failed"
-        exit 1
-    fi
+  # now run the end to end script
+  docker exec cli scripts/createToChannel.sh $CHANNEL_NAME
+  if [ $? -ne 0 ]; then
+      echo "ERROR !!!! Test failed"
+      exit 1
+  fi
 }
 
 function networkDown() {
-    echo
-    echo "===================== Tear down running network ====================="
-    echo
+  echo
+  echo "===================== Tear down running network ====================="
+  echo
+  
+  docker-compose -f $COMPOSE_FILE -f $COMPOSE_FILE_COUCH -f $COMPOSE_FILE_CA -f $COMPOSE_EXPLORER down -v
+
+  if [ "$MODE" != "restart" ]; then
+    #Cleanup the chaincode containers
+    clearContainers
+    #Cleanup images
+    removeUnwantedImages
+
+    # Remove previous crypto material and config transactions
+    rm -rf config
+    rm -rf crypto-config
+    rm -f docker-compose-ca.yaml
+    rm -f connection.yaml
     
-    docker-compose -f $COMPOSE_FILE -f $COMPOSE_FILE_COUCH -f $COMPOSE_FILE_CA -f $COMPOSE_EXPLORER down -v
-
-    if [ "$MODE" != "restart" ]; then
-      #Cleanup the chaincode containers
-      clearContainers
-      #Cleanup images
-      removeUnwantedImages
-
-      # Remove previous crypto material and config transactions
-      rm -rf config
-      rm -rf crypto-config
-      rm -f docker-compose-ca.yaml
-      rm -f connection.yaml
-      
-      # Remove hyperledger-explorer.json
-      rm -f ./explorer/connection-profile/hyperledger-explorer.json
-    fi
+    # Remove hyperledger-explorer.json
+    rm -rf ./explorer/connection-profile
+  fi
 }
 
 function generateCerts() {
-    which cryptogen
-    if [ "$?" -ne 0 ]; then
-        echo "cryptogen tool not found. exiting"
-        exit 1
-    fi
+  which cryptogen
+  if [ "$?" -ne 0 ]; then
+      echo "cryptogen tool not found. exiting"
+      exit 1
+  fi
 
-    if [ ! -d "config" ]; then
-        mkdir config
-    fi
+  if [ ! -d "config" ]; then
+      mkdir config
+  fi
 
-    if [ -d "crypto-config" ]; then
-      rm -rf crypto-config
-    fi
+  if [ -d "crypto-config" ]; then
+    rm -rf crypto-config
+  fi
 
-    # Generating crypto material
-    echo
-    echo "===================== Generating crypto material =====================" 
-    cryptogen generate --config=./crypto-config.yaml
-    if [ "$?" -ne 0 ]; then
-    echo "Failed to generate crypto material..."
-    exit 1
-    fi
-    echo
+  # Generating crypto material
+  echo
+  echo "===================== Generating crypto material =====================" 
+  cryptogen generate --config=./crypto-config.yaml
+  if [ "$?" -ne 0 ]; then
+  echo "Failed to generate crypto material..."
+  exit 1
+  fi
+  echo
 }
 
 function replacePrivateKey() {
   echo "CA Key file exchange"
-	
+
   cp ./base/docker-compose-ca-template.yaml docker-compose-ca.yaml
 
-	PRIV_KEY=$(ls crypto-config/peerOrganizations/org1.example.com/ca/ | grep _sk)
-	sed -i "s/CA1_PRIVATE_KEY/${PRIV_KEY}/g" docker-compose-ca.yaml
+  PRIV_KEY=$(ls crypto-config/peerOrganizations/org1.example.com/ca/ | grep _sk)
+  sed -i "s/CA1_PRIVATE_KEY/${PRIV_KEY}/g" docker-compose-ca.yaml
   PRIV_KEY=$(ls crypto-config/peerOrganizations/org2.example.com/ca/ | grep _sk)
-	sed -i "s/CA2_PRIVATE_KEY/${PRIV_KEY}/g" docker-compose-ca.yaml
+  sed -i "s/CA2_PRIVATE_KEY/${PRIV_KEY}/g" docker-compose-ca.yaml
   PRIV_KEY=$(ls crypto-config/peerOrganizations/org3.example.com/ca/ | grep _sk)
-	sed -i "s/CA3_PRIVATE_KEY/${PRIV_KEY}/g" docker-compose-ca.yaml
+  sed -i "s/CA3_PRIVATE_KEY/${PRIV_KEY}/g" docker-compose-ca.yaml
 
   echo "ORG AdminPrivate Key file exchange"
 
   cp ./base/connection-base.yaml connection.yaml
 
   PRIV_KEY=$(ls crypto-config/peerOrganizations/org1.example.com/users/Admin@org1.example.com/msp/keystore/ | grep _sk)
-	sed -i "s/ORG1_ADMIN_PRIVATE_KEY/${PRIV_KEY}/g" connection.yaml
+  sed -i "s/ORG1_ADMIN_PRIVATE_KEY/${PRIV_KEY}/g" connection.yaml
   PRIV_KEY=$(ls crypto-config/peerOrganizations/org2.example.com/users/Admin@org2.example.com/msp/keystore/ | grep _sk)
-	sed -i "s/ORG2_ADMIN_PRIVATE_KEY/${PRIV_KEY}/g" connection.yaml
+  sed -i "s/ORG2_ADMIN_PRIVATE_KEY/${PRIV_KEY}/g" connection.yaml
   PRIV_KEY=$(ls crypto-config/peerOrganizations/org3.example.com/users/Admin@org3.example.com/msp/keystore/ | grep _sk)
-	sed -i "s/ORG3_ADMIN_PRIVATE_KEY/${PRIV_KEY}/g" connection.yaml
+  sed -i "s/ORG3_ADMIN_PRIVATE_KEY/${PRIV_KEY}/g" connection.yaml
 }
 
 function generateChannel() {
-    which configtxgen
-    if [ "$?" -ne 0 ]; then
-        echo "configtxgen tool not found. exiting"
-        exit 1
-    fi
+  which configtxgen
+  if [ "$?" -ne 0 ]; then
+      echo "configtxgen tool not found. exiting"
+      exit 1
+  fi
 
-    # Generating genesis block for orderer
-    echo
-    echo "Generating genesis block for orderer"
-    configtxgen -profile ThreeOrgOrdererGenesis -outputBlock ./config/genesis.block
-    if [ "$?" -ne 0 ]; then
+  # Generating genesis block for orderer
+  echo
+  echo "Generating genesis block for orderer"
+  configtxgen -profile ThreeOrgOrdererGenesis -outputBlock ./config/genesis.block
+  if [ "$?" -ne 0 ]; then
     echo "Failed to generate orderer genesis block..."
     exit 1
-    fi
+  fi
 
-    # Generating channel configuration transaction 'channel.tx'
-    echo
-    echo "Generating channel configuration transaction 'channel.tx'"
-    configtxgen -profile ThreeOrgChannel -outputCreateChannelTx ./config/channel.tx -channelID $CHANNEL_NAME
-    if [ "$?" -ne 0 ]; then
+  # Generating channel configuration transaction 'channel.tx'
+  echo
+  echo "Generating channel configuration transaction 'channel.tx'"
+  configtxgen -profile ThreeOrgChannel -outputCreateChannelTx ./config/channel.tx -channelID $CHANNEL_NAME
+  if [ "$?" -ne 0 ]; then
     echo "Failed to generate channel configuration transaction..."
     exit 1
-    fi
+  fi
 
-    # Generating anchor peer update for Org1MSP
-    echo
-    echo "Generating anchor peer update for Org1MSP"
-    configtxgen -profile ThreeOrgChannel -outputAnchorPeersUpdate ./config/Org1MSPanchors.tx -channelID $CHANNEL_NAME -asOrg Org1MSP
-    if [ "$?" -ne 0 ]; then
+  # Generating anchor peer update for Org1MSP
+  echo
+  echo "Generating anchor peer update for Org1MSP"
+  configtxgen -profile ThreeOrgChannel -outputAnchorPeersUpdate ./config/Org1MSPanchors.tx -channelID $CHANNEL_NAME -asOrg Org1MSP
+  if [ "$?" -ne 0 ]; then
     echo "Failed to generate anchor peer update for Org1MSP..."
     exit 1
-    fi
+  fi
 
-    # Generate anchor peer update for Org2MSP
-    echo
-    echo "Generating anchor peer update for Org2MSP"
-    configtxgen -profile ThreeOrgChannel -outputAnchorPeersUpdate ./config/Org2MSPanchors.tx -channelID $CHANNEL_NAME -asOrg Org2MSP
-    if [ "$?" -ne 0 ]; then
+  # Generate anchor peer update for Org2MSP
+  echo
+  echo "Generating anchor peer update for Org2MSP"
+  configtxgen -profile ThreeOrgChannel -outputAnchorPeersUpdate ./config/Org2MSPanchors.tx -channelID $CHANNEL_NAME -asOrg Org2MSP
+  if [ "$?" -ne 0 ]; then
     echo "Failed to generate anchor peer update for Org2MSP..."
     exit 1
-    fi
+  fi
 
-    # Generate anchor peer update for Org3MSP
-    echo
-    echo "Generating anchor peer update for Org3MSP"
-    configtxgen -profile ThreeOrgChannel -outputAnchorPeersUpdate ./config/Org3MSPanchors.tx -channelID $CHANNEL_NAME -asOrg Org3MSP
-    if [ "$?" -ne 0 ]; then
+  # Generate anchor peer update for Org3MSP
+  echo
+  echo "Generating anchor peer update for Org3MSP"
+  configtxgen -profile ThreeOrgChannel -outputAnchorPeersUpdate ./config/Org3MSPanchors.tx -channelID $CHANNEL_NAME -asOrg Org3MSP
+  if [ "$?" -ne 0 ]; then
     echo "Failed to generate anchor peer update for Org3MSP..."
     exit 1
-    fi
-    echo
+  fi
+  echo
 }
 
 function explorerUp() {
@@ -214,8 +214,9 @@ function explorerUp() {
   echo "===================== Create Hyperledger Explorer containers ====================="
   echo
   
-  if [ ! -e "explorer/connection-profile/hyperledger-explorer.json" ]; then
+  if [ ! -d "explorer/connection-profile" ]; then
     echo "CA Key file & IPAddress exchange"
+    mkdir ./explorer/connection-profile
     cp ./base/hyperledger-explorer-base.json ./explorer/connection-profile/hyperledger-explorer.json
     
     PRIV_KEY=$(ls crypto-config/peerOrganizations/org1.example.com/users/Admin@org1.example.com/msp/keystore/ | grep _sk)
