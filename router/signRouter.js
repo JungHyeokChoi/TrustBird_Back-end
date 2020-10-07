@@ -1,13 +1,10 @@
 var User = require('../models/User')
 var router = require('express').Router()
-var express = require('express');
 
-
-router.route('/api/signup')
-    .post((req, res, next)=>{
-
+//User SignUp
+router.route('/up')
+    .post((req, res)=>{
         const userData = req.body
-
         const user = new User(userData)
 
         user.save((err)=>{
@@ -20,12 +17,12 @@ router.route('/api/signup')
         })
     })
 
-router.route('/signin')
-    .post((req, res, next)=>{
+//User SignIn
+router.route('/in')
+    .post((req, res)=>{
+        const { email, password } = req.body
 
-        const { username, password } = req.body
-
-        User.findOne({username}, (err, result) =>{
+        User.findOne({ email }, (err, result) => {
             if(err) {
                 console.log(err)
                 res.status(500).json({error : 'Internal error please try again'})
@@ -40,37 +37,59 @@ router.route('/signin')
                     } else if (!same) {
                         res.status(401).json({error : 'Incorrect passowrd'})
                     } else {
-                        res.status(200).send("HI")
-                        console.log(result)
+                        res.sendStatus(200)
                     }
                 })
             }
         })
     })
 
-router.route('/api/signout')
-    .get((req, res, next)=>{
-        req.logout()
-        res.redirect("/")
+//User SignOut
+router.route('/out')
+    .get((req, res) => {
+        res.sendStatus(200)
     })
 
-// 회원정보수정
-router.route('/api/signmodified/:email')
-    .put((req, res, next)=>{
-
-        User.update({email:req.params.email}, {$set: req.body},(err, output)=>{
-            if(err) res.status(500).json({error: 'Database Update fail'})
-            console.log(output)
-            if(!output.n) return res.status(200).json({error: 'Not Founnd'})
-            res.json({Ok: 'Database Update'})
+//User Modified
+router.route('/modified')
+    .post((req, res) => {
+        User.updateOne({ email:req.body.email }, { $set:req.body }, (err, _) => {
+            if(err) {
+                console.log(err)
+                res.status(500).json({error : 'Database Update fail'})
+            } else {
+                res.json({Ok: 'Database Update'})
+            }
         })
-
     })
 
-// 회원탈퇴, 빈라우터
-router.route('/api/trustsub')
-    .get((req, res, next)=>{
+//User Search
+router.route('/search')
+    .post((req,res) => {
+        User.findOne({ email : req.body.email }, (err, result) => {
+            if(err) {
+                console.log(err)
+                res.status(500).json({error : 'Internal error please try again'})
+            } else if(!result) {
+                console.log(result)
+                res.status(401).json({error : 'This user not exist. please using after sign up'})
+            } else {
+                res.status(200).json(result)
+            }
+        })
+    })
 
+// User Withdrawal
+router.route('/withdrawal')
+    .get((req, res) => {
+        User.deleteOne({ email : req.body.email }, (err, result) => {
+            if(err) {
+                console.log(err)
+                res.status(500).json({error : 'Internal error please try again'})
+            } else {
+                res.sendStatus(200)
+            }
+        })
     })
 
 module.exports = router;
