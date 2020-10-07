@@ -43,13 +43,18 @@ UserSchema.pre('save', function(next){
                 next(err)
             } 
             else {
-                document.password = hashedPassword}
+                document.password = hashedPassword
                 next()
             }
-        )
+        })
     } else {
         next()
     }
+})
+
+UserSchema.pre('updateOne', async function(){
+    var hashedPassword = await bcrypt.hashSync(this._update.$set.password, 10)
+    this._update.$set.password = hashedPassword
 })
 
 UserSchema.methods.isCorrectPassword = function(password, callback) {
