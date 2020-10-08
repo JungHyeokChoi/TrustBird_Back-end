@@ -1,0 +1,14 @@
+version: '3'
+
+services:
+  ipfs_node1:
+    container_name: ipfs_node1
+    image: ipfs/go-ipfs:release
+    restart: always
+    ports:
+      - 4001:4001
+      - 0.0.0.0:5001:5001
+      - 0.0.0.0:8080:8080
+    volumes:
+      - ./compose/ipfs_node1/staging:/export
+      - ./compose/ipfs_node1/data:/data/ipfs
