@@ -2,15 +2,13 @@ var mongoose = require('mongoose')
 
 //Trust Data
 var trustSchema = new mongoose.Schema({
-    
-    newToken : {
+    token : {
         type : String,
         required : true
     },
 
     preToken : {
-        type : String,
-        required : true
+        type : String
     },
 
     type : {
@@ -18,19 +16,21 @@ var trustSchema = new mongoose.Schema({
         required : true
     },
 
-    price : {
+    securityDeposit : {
         type : Number,
         required : true
     },
 
+    rent : {
+        type : Number
+    },
+
     trustProfit : {
-        type : Number,
-        required : false
+        type : Number
     },
 
     negligenceProfit : {
-        type : Number,
-        required : false
+        type : Number
     },
 
     purpose : {
@@ -49,28 +49,26 @@ var trustSchema = new mongoose.Schema({
     },
     
     etc : {
-        type : String,
-        required : false
+        type : String
     },
 
-    Attachments : {
-            originalName : {
-                type : String,
-                require : false
-            },
+    attachments : [
+        new mongoose.Schema({
+            originalName : String,
+            saveFileName : String,
+            fileSize : String,
+            mimetype : String,
+            fileBinary: Buffer
+        })
+    ],
 
-            saveFileName : {
-                type : String,
-                require : false
-            },
-            fileSize : {
-                type : String,
-                required : false
-            },
-            fileBinary: {
-                type : Buffer,
-                required : false
-            }
+    status : {
+        type : String,
+        default : "신탁 요청"
+    },
+
+    contract : {
+        type : String
     }
 })
 

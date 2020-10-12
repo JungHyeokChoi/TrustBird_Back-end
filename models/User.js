@@ -19,27 +19,42 @@ var UserSchema = new mongoose.Schema({
     },
 
     dateOfBirth : {
-        type : Date,
-        required : true,
+        type : Date
     },
 
     gender : {
-        type : String,
-        required : true
+        type : String
     },
 
     telephoneNum : {
+        type : String
+    },
+
+    permission : {
         type : String,
-        required : true
-    }
+        default : "User"
+    },
+
+    membership : {
+        type : Number,
+        default : 0
+    },
+
+    trust : [{
+        type : String
+    }],
+
+    maintenanceFee : [{
+        type : String
+    }],
 })
 
-UserSchema.pre('save', function(next){
+UserSchema.pre('save', function(next) {
     const document = this
 
-    if(this.isNew || this.isModified('password')){
-        bcrypt.hash(this.password, 10, function(err, hashedPassword){
-            if(err){
+    if(this.isNew || this.isModified('password')) {
+        bcrypt.hash(this.password, 10, function(err, hashedPassword) {
+            if(err) {
                 next(err)
             } 
             else {
@@ -52,19 +67,17 @@ UserSchema.pre('save', function(next){
     }
 })
 
-UserSchema.pre('updateOne', async function(){
-    var hashedPassword = await bcrypt.hashSync(this._update.$set.password, 10)
-    this._update.$set.password = hashedPassword
+UserSchema.pre('updateOne', function() {
+    if(this._update.$set) {
+        if(this._update.$set.password) {
+            const hashedPassword = bcrypt.hashSync(this._update.$set.password, 10)
+            this._update.$set.password = hashedPassword
+        }
+    }
 })
 
-UserSchema.methods.isCorrectPassword = function(password, callback) {
-    bcrypt.compare(password, this.password, function(err, same){
-        if(err) {
-            callback(err)
-        } else {
-            callback(err, same)
-        } 
-    })
+UserSchema.methods.isCorrectPassword = function(password) {
+    return bcrypt.compareSync(password, this.password)
 }
 
 module.exports = mongoose.model('User', UserSchema)

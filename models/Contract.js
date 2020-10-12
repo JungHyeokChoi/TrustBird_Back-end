@@ -2,14 +2,13 @@ var mongoose = require('mongoose')
 
 //Contract Data
 var contractSchema = new mongoose.Schema({
-    newToken : {
+    token : {
         type : String,
         required : true
     },
 
     preToken : {
-        type : String,
-        required : true
+        type : String
     },
 
     location : {
@@ -68,34 +67,30 @@ var contractSchema = new mongoose.Schema({
     },
 
     contractPrice : {
-        type : Number,
-        required : false
+        type : Number
     },
 
     interimPrice : {
-        type : Number,
-        required : false
+        type : Number
     },
 
     balance : {
-        type : Number,
-        required : false
+        type : Number
     },
 
     rent : {
-        type : Number,
-        required : false
+        type : Number
     },
 
     specialAgreement : {
-        type : String,
-        required : false
+        type : String
     },
 
     lessor : {
-        address : { type : String, 
-                    required : true 
-                },
+        address : { 
+            type : String, 
+            required : true 
+        },
         RRN : {
             type : String,
             required : true
@@ -133,7 +128,7 @@ var contractSchema = new mongoose.Schema({
         address : { 
             type : String, 
             required : true 
-                },
+        },
         officeName : {
             type : String,
             required : true
@@ -150,7 +145,17 @@ var contractSchema = new mongoose.Schema({
             type : String,
             required : true
         },
-    }
+    },
+
+    attachments : [
+        new mongoose.Schema({
+            originalName : String,
+            saveFileName : String,
+            fileSize : String,
+            mimetype : String,
+            fileBinary: Buffer
+        })
+    ]
 })
 
 module.exports = mongoose.model('Contract', contractSchema)

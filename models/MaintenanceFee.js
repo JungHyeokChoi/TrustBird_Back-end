@@ -33,18 +33,19 @@ var maintenanceFeeSchema = new mongoose.Schema({
     },
 
     payment : {
-        type : String,
-        required : true
+        type : String
     },
 
     payer : {
-        type : String,
-        required : true
+        type : String
     },
 
     giro : {
-        type : String,
-        required : false
+        originalName : String,
+        saveFileName : String,
+        fileSize : String,
+        mimetype : String,
+        fileBinary : Buffer
     }
 
 })
