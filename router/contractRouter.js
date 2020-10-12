@@ -28,7 +28,7 @@ router.route('/enroll')
                     originalName : file.originalname,
                     saveFileName : file.filename,
                     fileSize : file.size,
-                    mimetype : file.mimetype,
+                    mimeType : file.mimeType,
                     fileBinary : fs.readFileSync(file.path)
                 }
                 attachments.push(attachment)
@@ -86,7 +86,7 @@ router.route('/update')
                     originalName : file.originalname,
                     saveFileName : file.filename,
                     fileSize : file.size,
-                    mimetype : file.mimetype,
+                    mimeType : file.mimeType,
                     fileBinary : fs.readFileSync(file.path)
                 }
                 attachments.push(attachment)

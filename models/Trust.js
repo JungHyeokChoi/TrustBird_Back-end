@@ -57,7 +57,7 @@ var trustSchema = new mongoose.Schema({
             originalName : String,
             saveFileName : String,
             fileSize : String,
-            mimetype : String,
+            mimeType : String,
             fileBinary: Buffer
         })
     ],

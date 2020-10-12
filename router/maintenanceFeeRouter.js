@@ -16,7 +16,7 @@ router.route('/input')
             originalName : req.file.originalname,
             saveFileName : req.file.filename,
             fileSize : req.file.size,
-            mimetype : req.file.mimetype,
+            mimeType : req.file.mimeType,
             fileBinary : fs.readFileSync(req.file.path)
         }
 
@@ -55,7 +55,7 @@ router.route('/update')
             originalName : req.file.originalname,
             saveFileName : req.file.filename,
             fileSize : req.file.size,
-            mimetype : req.file.mimetype,
+            mimeType : req.file.mimeType,
             fileBinary : fs.readFileSync(req.file.path)
         }
 
