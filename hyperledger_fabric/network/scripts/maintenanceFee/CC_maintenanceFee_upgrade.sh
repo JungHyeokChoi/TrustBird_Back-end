@@ -30,20 +30,20 @@ echo
 echo "===================== Chaincode Upgrade ====================="
 echo
 
-# upgrade chaincode on All peers
-upgradeChaincodeOnAllPeers () {
+# Install chaincode on All peers
+installChaincodeOnAllPeers () {
 	for org in $(seq $Orgs); do
 	    for peer in $(seq 0 $Peers); do
-			echo "Upgrading chaincode on peer$peer.org$org..."
-            upgradeChaincode $peer $org "AND Org1MSP.member Org2MSP.member Org3MSP.member"
+			echo "Installing chaincode on peer$peer.org$org..."
+            installChaincode $peer $org
 	    done
 	done
 }
-upgradeChaincodeOnAllPeers
+installChaincodeOnAllPeers
 
-# Instantiate chaincode on peer0.org1
-echo "Instantiating chaincode on peer0.org1..."
-instantiateChaincode 0 1 "AND Org1MSP.member Org2MSP.member Org3MSP.member"
+# Upgrade chaincode on peer0.org1
+echo "Upgrading chaincode on peer0.org1..."
+upgradeChaincode 0 1 "AND Org1MSP.member Org2MSP.member Org3MSP.member"
 
 sleep ${DELAY}
 
