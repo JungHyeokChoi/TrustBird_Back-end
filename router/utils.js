@@ -10,7 +10,7 @@ const jsonToHash = (data) => {
 const storage = multer.diskStorage({
     destination : "./pubilc/img",
     filename : function(req, file, cb) {
-        cb(null, `${Date.now()}_${file.originalname}`)
+        cb(null, `${Date.now()}`)
     }
 })
 
