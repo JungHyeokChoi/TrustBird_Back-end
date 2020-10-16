@@ -40,6 +40,11 @@ var UserSchema = new mongoose.Schema({
         default : 0
     },
 
+    balance : {
+        type : Number,
+        default : 0
+    },
+
     trust : [{
         type : String
     }],

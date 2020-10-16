@@ -11,6 +11,31 @@ var trustSchema = new mongoose.Schema({
         type : String
     },
 
+    username : {
+        type : String,
+        required : true
+    },
+
+    telephoneNum : {
+        type : String,
+        required : true
+    },
+
+    realtorName : {
+        type : String,
+        required : true
+    },
+
+    realtorTelephoneNum : {
+        type : String,
+        required : true
+    },
+
+    realtorCellphoneNum : {
+        type : String,
+        required : true
+    },
+
     type : {
         type : String,
         required : true
@@ -22,14 +47,6 @@ var trustSchema = new mongoose.Schema({
     },
 
     rent : {
-        type : Number
-    },
-
-    trustProfit : {
-        type : Number
-    },
-
-    negligenceProfit : {
         type : Number
     },
 
