@@ -17,6 +17,18 @@ router.route('/subscription')
                 res.status(500).json({error : 'Internal error please try again'})
             }
             
+            User.findOne({ email : req.user.eamil }, { username : 1, telephoneNum : 1 }, (err, result) => {
+                if(err) {
+                    console.log(err)
+                    res.status(500).json({error : 'Internal error please try again'})
+                } else if (!result) {
+                    res.status(401).json({message : 'This user not exist.'}) 
+                } else {
+                    req.body.username = result.username
+                    req.body.telephoneNum = result.telephoneNum
+                }
+            })
+
             const token = jsonToHash(req.body)
 
             req.body.token = token
@@ -40,7 +52,7 @@ router.route('/subscription')
                 attachments
             }
             const trust = new Trust(trustData)
-    
+            
             trust.save((err) => {
                 if(err){
                     console.log(err)

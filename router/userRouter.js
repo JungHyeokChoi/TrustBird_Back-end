@@ -179,6 +179,10 @@ router.route('/attribute')
     })
 
     .post(authenticate.user, (req, res) => {
+        if(req.body.attribute.target === "balance" && req.user.permission !== "admin"){
+            res.status(401).json({message : "Invaild Authority"})
+        }
+
         const email = req.user.permission === "admin" ? req.body.email : req.user.email
 
         User.updateOne({ email }, { $set : { [`${req.body.attribute.target}`] : req.body.attribute.data }}, (err, result) => {
