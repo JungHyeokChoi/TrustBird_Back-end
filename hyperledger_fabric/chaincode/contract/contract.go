@@ -17,10 +17,11 @@ type Contract struct {
 	Lessor Lessor
 	Lessee Lessee
 	Realtor Realtor
+	Attachments []Attachment
 }
 
 type Contents struct {
-	NewToken string `json:"newtoken"`
+	Token string `json:"token"`
 	PreToken string `json:"pretoken"`
 	Location string `json:"location"`
 	LandCategory string `json:"landcategory"`
@@ -62,6 +63,11 @@ type Realtor struct {
 	TelephoneNum string `json:"telephonenum"`
 }
 
+type Attachment struct {
+	Filename string `json:"filename"`
+	FilePath string `json:"filepath"`
+}
+
 func (s *SmartContract) Init(APIstub shim.ChaincodeStubInterface) sc.Response {
 	return shim.Success(nil)
 }
@@ -85,13 +91,13 @@ func (s *SmartContract) Invoke(APIstub shim.ChaincodeStubInterface) sc.Response 
 }
 
 func  (s *SmartContract) addContract(APIstub shim.ChaincodeStubInterface, args []string) sc.Response {
-	if len(args) != 31 {
+	if len(args) < 31 {
 		return shim.Error("fail!")
 	}
 
 	var contract = Contract{
-		Contents{
-			NewToken : args[0],
+		Contents : Contents{
+			Token : args[0],
 			PreToken : args[1],
 			Location : args[2],
 			LandCategory : args[3],
@@ -109,22 +115,32 @@ func  (s *SmartContract) addContract(APIstub shim.ChaincodeStubInterface, args [
 			Balance : args[15],
 			Rent : args[16],
 			SpecialAgreement : args[17]},
-		Lessor{
+		Lessor : Lessor{
 			Address : args[18],
 			RRN : args[19],
 			Name : args[20],
 			TelephoneNum : args[21]},
-		Lessee{
+		Lessee : Lessee{
 			Address : args[22],
 			RRN : args[23],
 			Name : args[24],
 			TelephoneNum : args[25]},
-		Realtor{
+		Realtor : Realtor{
 			Address : args[26],
 			OfficeName : args[27],
 			Name : args[28],
 			RegistrationNum : args[29],
-			TelephoneNum : args[30]}}
+			TelephoneNum : args[30]},
+		Attachments : []Attachment{}}
+	
+	var Attachment = Attachment{}
+
+	for i := 31; i < len(args); i+=2 {
+		Attachment.Filename = args[i]
+		Attachment.FilePath = args[i + 1]
+
+		contract.Attachments = append(contract.Attachments, Attachment)
+	}
 
 	contractAsBytes, _ := json.Marshal(contract)
 	APIstub.PutState(args[0], contractAsBytes)
@@ -141,9 +157,15 @@ func  (s *SmartContract) updateContract(APIstub shim.ChaincodeStubInterface, arg
 	contract := Contract{}
 
 	json.Unmarshal(contractAsBytes, &contract)
+	
+	err := APIstub.DelState(args[1])
+	if err != nil {
+		return shim.Error("Fail Update")
+	}
+
 	contract = Contract{
-		Contents{
-			NewToken : args[0],
+		Contents : Contents{
+			Token : args[0],
 			PreToken : args[1],
 			Location : args[2],
 			LandCategory : args[3],
@@ -161,23 +183,33 @@ func  (s *SmartContract) updateContract(APIstub shim.ChaincodeStubInterface, arg
 			Balance : args[15],
 			Rent : args[16],
 			SpecialAgreement : args[17]},
-		Lessor{
+		Lessor : Lessor{
 			Address : args[18],
 			RRN : args[19],
 			Name : args[20],
 			TelephoneNum : args[21]},
-		Lessee{
+		Lessee : Lessee{
 			Address : args[22],
 			RRN : args[23],
 			Name : args[24],
 			TelephoneNum : args[25]},
-		Realtor{
+		Realtor : Realtor{
 			Address : args[26],
 			OfficeName : args[27],
 			Name : args[28],
 			RegistrationNum : args[29],
-			TelephoneNum : args[30]}}
+			TelephoneNum : args[30]},
+		Attachments : []Attachment{}}
 			
+	var Attachment = Attachment{}
+
+	for i := 31; i < len(args); i+=2 {
+		Attachment.Filename = args[i]
+		Attachment.FilePath = args[i + 1]
+
+		contract.Attachments = append(contract.Attachments, Attachment)
+	}
+
 	contractAsBytes, _ = json.Marshal(contract)
 	APIstub.PutState(args[0], contractAsBytes)
 

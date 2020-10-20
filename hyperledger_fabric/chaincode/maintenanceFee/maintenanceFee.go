@@ -20,7 +20,12 @@ type MaintenanceFee struct {
 	AmountDue string `json:"amountdue"`
 	AmountDeadline string `json:"amountdeadline"`
 	Payment string `json:"payment"`
-	Giro string `json:"giro"`
+	Giro Giro
+}
+
+type Giro struct {
+	Filename string `json:"filename"`
+	FilePath string `json:"filepath"`
 }
 
 func (s *SmartContract) Init(APIstub shim.ChaincodeStubInterface) sc.Response {
@@ -46,7 +51,7 @@ func (s *SmartContract) Invoke(APIstub shim.ChaincodeStubInterface) sc.Response 
 }
 
 func  (s *SmartContract) addMaintenanceFee(APIstub shim.ChaincodeStubInterface, args []string) sc.Response {
-	if len(args) != 8 {
+	if len(args) < 7 {
 		return shim.Error("fail!")
 	}
 	var maintenanceFee = MaintenanceFee{
@@ -57,7 +62,9 @@ func  (s *SmartContract) addMaintenanceFee(APIstub shim.ChaincodeStubInterface, 
 		AmountDue : args[4],
 		AmountDeadline : args[5],
 		Payment : args[6],
-		Giro : args[7]}
+		Giro : Giro{
+			Filename : args[7],
+			FilePath : args[8]}}
 
 	maintenanceFeeAsBytes, _ := json.Marshal(maintenanceFee)
 	APIstub.PutState(args[1], maintenanceFeeAsBytes)
@@ -66,7 +73,7 @@ func  (s *SmartContract) addMaintenanceFee(APIstub shim.ChaincodeStubInterface, 
 }
 
 func  (s *SmartContract) updateMaintenanceFee(APIstub shim.ChaincodeStubInterface, args []string) sc.Response {
-	if len(args) != 8 {
+	if len(args) < 7 {
 		return shim.Error("fail!")
 	}
 
@@ -82,7 +89,9 @@ func  (s *SmartContract) updateMaintenanceFee(APIstub shim.ChaincodeStubInterfac
 		AmountDue : args[4],
 		AmountDeadline : args[5],
 		Payment : args[6],
-		Giro : args[7]}
+		Giro : Giro{
+			Filename : args[7],
+			FilePath : args[8]}}
 
 	maintenanceFeeAsBytes, _ = json.Marshal(maintenanceFee)
 	APIstub.PutState(args[1], maintenanceFeeAsBytes)

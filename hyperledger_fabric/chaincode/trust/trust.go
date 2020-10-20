@@ -13,17 +13,28 @@ type SmartContract struct {
 }
 
 type Trust struct {
-	NewToken string `json:newtoken`
-	PreToken string `json:pretoken`
+	Token string `json:"token"`
+	PreToken string `json:"pretoken"`
+	Name string `json:"name"`
+	TelephoneNum string `json:"telephonenum"`
+	RealtorName string `json:"realtorname"`
+	RealtorTelephoneNum string `json:"realtortelephonenum"`
+	RealtorCellphoneNum string `json:"realtorcellphonenum"`
 	Type string `json:"type"`
-	Price string `json:"price"`
-	TrustProfit string `json:"trustprofit"`
-	NegligenceProfit string `json:"negligenceprofit"`
+	SecurityDeposit string `json:"securitydeposit"`
+	Rent string `json:"rent"`
 	Purpose string `json:"purpose"`
 	PeriodStart string `json:"periodstart"`
 	PeriodEnd string `json:"periodend"`
 	Etc string `json:"etc"`
-	Attachments string `json:"attachments"`
+	Status string `json:"status"`
+	Contract string `json:"contract"`
+	Attachments []Attachment
+}
+
+type Attachment struct {
+	Filename string `json:"filename"`
+	FilePath string `json:"filepath"`
 }
 
 func (s *SmartContract) Init(APIstub shim.ChaincodeStubInterface) sc.Response {
@@ -43,28 +54,49 @@ func (s *SmartContract) Invoke(APIstub shim.ChaincodeStubInterface) sc.Response 
 		return s.readTrust(APIstub, args)
 	} else if function == "readAllTrust" {
 		return s.readAllTrust(APIstub)
+	} else if function == "setStatus" {
+		return s.setStatus(APIstub, args)
+	} else if function == "readStatus" {
+		return s.readStatus(APIstub, args)
+	} else if function == "setContract" {
+		return s.setContract(APIstub, args)
 	}
 
 	return shim.Error("Invalid Smart Contract function name.")
 }
 
 func  (s *SmartContract) addTrust(APIstub shim.ChaincodeStubInterface, args []string) sc.Response {
-	if len(args) != 11 {
+	if len(args) < 15 {
 		return shim.Error("fail!")
 	}
 
 	var trust = Trust{
-		NewToken : args[0],
+		Token : args[0],
 		PreToken : args[1],
-		Type : args[2],
-		Price : args[3],
-		TrustProfit : args[4],
-		NegligenceProfit : args[5],
-		Purpose : args[6],
-		PeriodStart : args[7],
-		PeriodEnd : args[8],
-		Etc : args[9],
-		Attachments : args[10]}
+		Name : args[2],
+		TelephoneNum : args[3],
+		RealtorName : args[4],
+		RealtorTelephoneNum : args[5],
+		RealtorCellphoneNum : args[6],
+		Type: args[7],
+		SecurityDeposit : args[8],
+		Rent : args[9],
+		Purpose : args[10],
+		PeriodStart : args[11],
+		PeriodEnd : args[12],
+		Etc : args[13],
+		Status : args[14],
+		Contract : args[15],
+		Attachments : []Attachment{}}
+	
+	var Attachment = Attachment{}
+
+	for i := 16; i < len(args); i+=2 {
+		Attachment.Filename = args[i]
+		Attachment.FilePath = args[i + 1]
+
+		trust.Attachments = append(trust.Attachments, Attachment)
+	}
 
 	trustAsBytes, _ := json.Marshal(trust)
 	APIstub.PutState(args[0], trustAsBytes)
@@ -73,7 +105,7 @@ func  (s *SmartContract) addTrust(APIstub shim.ChaincodeStubInterface, args []st
 }
 
 func  (s *SmartContract) updateTrust(APIstub shim.ChaincodeStubInterface, args []string) sc.Response {
-	if len(args) != 11 {
+	if len(args) < 15 {
 		return shim.Error("fail!")
 	}
 
@@ -81,23 +113,44 @@ func  (s *SmartContract) updateTrust(APIstub shim.ChaincodeStubInterface, args [
 	trust := Trust{}
 
 	json.Unmarshal(trustAsBytes, &trust)
+
+	err := APIstub.DelState(args[1])
+	if err != nil {
+		return shim.Error("Fail Update")
+	}
+
 	trust = Trust{
-		NewToken : args[0],
+		Token : args[0],
 		PreToken : args[1],
-		Type : args[2],
-		Price : args[3],
-		TrustProfit : args[4],
-		NegligenceProfit : args[5],
-		Purpose : args[6],
-		PeriodStart : args[7],
-		PeriodEnd : args[8],
-		Etc : args[9],
-		Attachments : args[10]}
+		Name : args[2],
+		TelephoneNum : args[3],
+		RealtorName : args[4],
+		RealtorTelephoneNum : args[5],
+		RealtorCellphoneNum : args[6],
+		Type: args[7],
+		SecurityDeposit : args[8],
+		Rent : args[9],
+		Purpose : args[10],
+		PeriodStart : args[11],
+		PeriodEnd : args[12],
+		Etc : args[13],
+		Status : args[14],
+		Contract : args[15]}
+	
+	var Attachment = Attachment{}
+
+	for i := 16; i < len(args); i+=2 {
+		Attachment.Filename = args[i]
+		Attachment.FilePath = args[i + 1]
+
+		trust.Attachments = append(trust.Attachments, Attachment)
+	}
 
 	trustAsBytes, _ = json.Marshal(trust)
 	APIstub.PutState(args[0], trustAsBytes)
-	
+
 	return shim.Success(nil)
+
 }
 
 func  (s *SmartContract) removeTrust(APIstub shim.ChaincodeStubInterface, args []string) sc.Response {
@@ -154,6 +207,55 @@ func  (s *SmartContract) readAllTrust(APIstub shim.ChaincodeStubInterface) sc.Re
 	buffer.WriteString("]")
 
 	return shim.Success(buffer.Bytes())
+}
+
+func (s *SmartContract) setStatus(APIstub shim.ChaincodeStubInterface, args []string) sc.Response {
+	if len(args) != 2 {
+		return shim.Error("fail!")
+	}
+
+	trustAsBytes, _ := APIstub.GetState(args[0])
+	trust := Trust{}
+
+	json.Unmarshal(trustAsBytes, &trust)
+
+	trust.Status = args[1]
+
+	trustAsBytes, _ = json.Marshal(trust)
+	APIstub.PutState(args[0], trustAsBytes)
+
+	return shim.Success(nil)
+}
+
+func (s *SmartContract) readStatus(APIstub shim.ChaincodeStubInterface, args []string) sc.Response {
+	if len(args) != 1 {
+		return shim.Error("fail!")
+	}
+
+	trustAsBytes, _ := APIstub.GetState(args[0])
+	trust := Trust{}
+
+	json.Unmarshal(trustAsBytes, &trust)
+
+	return shim.Success([]byte(trust.Status))
+}
+
+func (s *SmartContract) setContract(APIstub shim.ChaincodeStubInterface, args []string) sc.Response {
+	if len(args) != 2 {
+		return shim.Error("fail!")
+	}
+
+	trustAsBytes, _ := APIstub.GetState(args[0])
+	trust := Trust{}
+
+	json.Unmarshal(trustAsBytes, &trust)
+
+	trust.Contract = args[1]
+
+	trustAsBytes, _ = json.Marshal(trust)
+	APIstub.PutState(args[0], trustAsBytes)
+
+	return shim.Success(nil)
 }
 
 func main() {
