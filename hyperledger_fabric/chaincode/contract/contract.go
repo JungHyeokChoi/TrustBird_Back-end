@@ -13,59 +13,55 @@ type SmartContract struct {
 }
 
 type Contract struct {
-	Contents Contents
-	Lessor Lessor
-	Lessee Lessee
-	Realtor Realtor
-	Attachments []Attachment
-}
-
-type Contents struct {
 	Token string `json:"token"`
-	PreToken string `json:"pretoken"`
+	PreToken string `json:"preToken"`
 	Location string `json:"location"`
-	LandCategory string `json:"landcategory"`
-	LandArea string `json:"landarea"`
-	BuildingPurpose string `json:"buildingpurpose"`
-	BuildingArea string `json:"buildingarea"`
-	PartOfLeese string `json:"partofleese"`
-	PartOfLeeseArea string `json:"partofleesearea"`
-	RentType string `json:"renttype"`
-	PeriodStart string `json:"periodstart"`
-	Periodend string `json:"periodeend"`
-	SecurityDeposit string `json:"securitydeposit"`
-	ContractPrice string `json:"contractprice"`
-	InterimPrice string `json:"interimprice"`
+	LandCategory string `json:"landCategory"`
+	LandArea string `json:"landArea"`
+	BuildingPurpose string `json:"buildingPurpose"`
+	BuildingArea string `json:"buildingArea"`
+	PartOfLeese string `json:"partOfLeese"`
+	PartOfLeeseArea string `json:"partOfLeeseArea"`
+	RentType string `json:"rentType"`
+	PeriodStart string `json:"periodStart"`
+	Periodend string `json:"periodEnd"`
+	SecurityDeposit string `json:"securityDeposit"`
+	ContractPrice string `json:"contractPrice"`
+	InterimPrice string `json:"interimPrice"`
 	Balance string `json:"balance"`
 	Rent string `json:"rent"`
-	SpecialAgreement string `json:"specialagreement"`
+	SpecialAgreement string `json:"specialAgreement"`
+	Lessor Lessor `json:"lessor"`
+	Lessee Lessee `json:"lessee"`
+	Realtor Realtor `json:"realtor"`
+	Attachments []Attachment `json:"attachments"`
 }
 
 type Lessor struct {
 	Address string `json:"address"`
-	RRN string `json:"rrn"`
+	RRN string `json:"RRN"`
 	Name string `json:"name"`
 	TelephoneNum string `json:"telephoneNum"`
 }
 
 type Lessee struct {
 	Address string `json:"address"`
-	RRN string `json:"rrn"`
+	RRN string `json:"RRN"`
 	Name string `json:"name"`
 	TelephoneNum string `json:"telephoneNum"`
 }
 
 type Realtor struct {
 	Address string `json:"address"`
-	OfficeName string `json:"officename"`
+	OfficeName string `json:"officeName"`
 	Name string `json:"name"`
-	RegistrationNum string `json:"registrationnum"`
-	TelephoneNum string `json:"telephonenum"`
+	RegistrationNum string `json:"registrationNum"`
+	TelephoneNum string `json:"telephoneNum"`
 }
 
 type Attachment struct {
-	Filename string `json:"filename"`
-	FilePath string `json:"filepath"`
+	Filename string `json:"fileName"`
+	FilePath string `json:"filePath"`
 }
 
 func (s *SmartContract) Init(APIstub shim.ChaincodeStubInterface) sc.Response {
@@ -96,25 +92,24 @@ func  (s *SmartContract) addContract(APIstub shim.ChaincodeStubInterface, args [
 	}
 
 	var contract = Contract{
-		Contents : Contents{
-			Token : args[0],
-			PreToken : args[1],
-			Location : args[2],
-			LandCategory : args[3],
-			LandArea : args[4],
-			BuildingPurpose : args[5],
-			BuildingArea : args[6],
-			PartOfLeese : args[7],
-			PartOfLeeseArea : args[8],
-			RentType : args[9],
-			PeriodStart : args[10],
-			Periodend : args[11],
-			SecurityDeposit : args[12],
-			ContractPrice : args[13],
-			InterimPrice : args[14],
-			Balance : args[15],
-			Rent : args[16],
-			SpecialAgreement : args[17]},
+		Token : args[0],
+		PreToken : args[1],
+		Location : args[2],
+		LandCategory : args[3],
+		LandArea : args[4],
+		BuildingPurpose : args[5],
+		BuildingArea : args[6],
+		PartOfLeese : args[7],
+		PartOfLeeseArea : args[8],
+		RentType : args[9],
+		PeriodStart : args[10],
+		Periodend : args[11],
+		SecurityDeposit : args[12],
+		ContractPrice : args[13],
+		InterimPrice : args[14],
+		Balance : args[15],
+		Rent : args[16],
+		SpecialAgreement : args[17],
 		Lessor : Lessor{
 			Address : args[18],
 			RRN : args[19],
@@ -149,11 +144,15 @@ func  (s *SmartContract) addContract(APIstub shim.ChaincodeStubInterface, args [
 }
 
 func  (s *SmartContract) updateContract(APIstub shim.ChaincodeStubInterface, args []string) sc.Response {
-	if len(args) != 31 {
+	if len(args) < 31 {
 		return shim.Error("fail!")
 	}
 
 	contractAsBytes, _ := APIstub.GetState(args[1])
+	if(contractAsBytes == nil) {
+		return shim.Error("This contract is not exist. Update fail")
+	}
+
 	contract := Contract{}
 
 	json.Unmarshal(contractAsBytes, &contract)
@@ -164,25 +163,24 @@ func  (s *SmartContract) updateContract(APIstub shim.ChaincodeStubInterface, arg
 	}
 
 	contract = Contract{
-		Contents : Contents{
-			Token : args[0],
-			PreToken : args[1],
-			Location : args[2],
-			LandCategory : args[3],
-			LandArea : args[4],
-			BuildingPurpose : args[5],
-			BuildingArea : args[6],
-			PartOfLeese : args[7],
-			PartOfLeeseArea : args[8],
-			RentType : args[9],
-			PeriodStart : args[10],
-			Periodend : args[11],
-			SecurityDeposit : args[12],
-			ContractPrice : args[13],
-			InterimPrice : args[14],
-			Balance : args[15],
-			Rent : args[16],
-			SpecialAgreement : args[17]},
+		Token : args[0],
+		PreToken : args[1],
+		Location : args[2],
+		LandCategory : args[3],
+		LandArea : args[4],
+		BuildingPurpose : args[5],
+		BuildingArea : args[6],
+		PartOfLeese : args[7],
+		PartOfLeeseArea : args[8],
+		RentType : args[9],
+		PeriodStart : args[10],
+		Periodend : args[11],
+		SecurityDeposit : args[12],
+		ContractPrice : args[13],
+		InterimPrice : args[14],
+		Balance : args[15],
+		Rent : args[16],
+		SpecialAgreement : args[17],
 		Lessor : Lessor{
 			Address : args[18],
 			RRN : args[19],
@@ -241,8 +239,8 @@ func  (s *SmartContract) readContract(APIstub shim.ChaincodeStubInterface, args 
 }
 
 func  (s *SmartContract) readAllContract(APIstub shim.ChaincodeStubInterface) sc.Response {
-	startKey := "0x0000000000000000000000000000000000000000000000000000000000000000"
-	endKey := "0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+	startKey := ""
+	endKey := ""
 
 	resultsIterator, err := APIstub.GetStateByRange(startKey, endKey)
 	if err != nil {
@@ -262,9 +260,7 @@ func  (s *SmartContract) readAllContract(APIstub shim.ChaincodeStubInterface) sc
 		if bArrayMemberAlreadyWritten == true {
 			buffer.WriteString(",")
 		}
-		buffer.WriteString("\"Record\":")
 		buffer.WriteString(string(queryResponse.Value))
-		buffer.WriteString("}")
 		bArrayMemberAlreadyWritten = true
 	}
 	buffer.WriteString("]")

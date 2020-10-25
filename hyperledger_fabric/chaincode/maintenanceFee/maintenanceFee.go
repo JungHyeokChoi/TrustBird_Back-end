@@ -13,19 +13,20 @@ type SmartContract struct {
 }
 
 type MaintenanceFee struct {
-	ClaimingAgency string `json:"claimingagency"`
-	ElectronicPaymenetNum string `json:"electronicpaymenetnum"`
-	DueDate string `json:"duedate"`
+	ClaimingAgency string `json:"claimingAgency"`
+	ElectronicPaymentNum string `json:"electronicPaymentNum"`
+	DueDate string `json:"dueDate"`
 	Deadline string `json:"deadline"`
-	AmountDue string `json:"amountdue"`
-	AmountDeadline string `json:"amountdeadline"`
+	AmountDue string `json:"amountDue"`
+	AmountDeadline string `json:"amountDeadline"`
 	Payment string `json:"payment"`
-	Giro Giro
+	Payer string `json:"payer"`
+	Giro Giro `json:"giro"`
 }
 
 type Giro struct {
-	Filename string `json:"filename"`
-	FilePath string `json:"filepath"`
+	Filename string `json:"fileName"`
+	FilePath string `json:"filePath"`
 }
 
 func (s *SmartContract) Init(APIstub shim.ChaincodeStubInterface) sc.Response {
@@ -51,20 +52,21 @@ func (s *SmartContract) Invoke(APIstub shim.ChaincodeStubInterface) sc.Response 
 }
 
 func  (s *SmartContract) addMaintenanceFee(APIstub shim.ChaincodeStubInterface, args []string) sc.Response {
-	if len(args) < 7 {
+	if len(args) < 8 {
 		return shim.Error("fail!")
 	}
 	var maintenanceFee = MaintenanceFee{
 		ClaimingAgency : args[0],
-		ElectronicPaymenetNum : args[1],
+		ElectronicPaymentNum : args[1],
 		DueDate : args[2],
 		Deadline : args[3],
 		AmountDue : args[4],
 		AmountDeadline : args[5],
 		Payment : args[6],
+		Payer : args[7],
 		Giro : Giro{
-			Filename : args[7],
-			FilePath : args[8]}}
+			Filename : args[8],
+			FilePath : args[9]}}
 
 	maintenanceFeeAsBytes, _ := json.Marshal(maintenanceFee)
 	APIstub.PutState(args[1], maintenanceFeeAsBytes)
@@ -73,25 +75,30 @@ func  (s *SmartContract) addMaintenanceFee(APIstub shim.ChaincodeStubInterface, 
 }
 
 func  (s *SmartContract) updateMaintenanceFee(APIstub shim.ChaincodeStubInterface, args []string) sc.Response {
-	if len(args) < 7 {
+	if len(args) < 8 {
 		return shim.Error("fail!")
 	}
 
 	maintenanceFeeAsBytes, _ := APIstub.GetState(args[1])
+	if(maintenanceFeeAsBytes == nil) {
+		return shim.Error("This maintenanceFee is not exist. Update fail")
+	}
+
 	maintenanceFee := MaintenanceFee{}
 
 	json.Unmarshal(maintenanceFeeAsBytes, &maintenanceFee)
 	maintenanceFee = MaintenanceFee{
 		ClaimingAgency : args[0],
-		ElectronicPaymenetNum : args[1],
+		ElectronicPaymentNum : args[1],
 		DueDate : args[2],
 		Deadline : args[3],
 		AmountDue : args[4],
 		AmountDeadline : args[5],
 		Payment : args[6],
+		Payer : args[7],
 		Giro : Giro{
-			Filename : args[7],
-			FilePath : args[8]}}
+			Filename : args[8],
+			FilePath : args[9]}}
 
 	maintenanceFeeAsBytes, _ = json.Marshal(maintenanceFee)
 	APIstub.PutState(args[1], maintenanceFeeAsBytes)
@@ -124,8 +131,8 @@ func  (s *SmartContract) readMaintenanceFee(APIstub shim.ChaincodeStubInterface,
 }
 
 func  (s *SmartContract) readAllMaintenanceFee(APIstub shim.ChaincodeStubInterface) sc.Response {
-	startKey := "0000000000"
-	endKey := "9999999999"
+	startKey := ""
+	endKey := ""
 
 	resultsIterator, err := APIstub.GetStateByRange(startKey, endKey)
 	if err != nil {
@@ -145,9 +152,7 @@ func  (s *SmartContract) readAllMaintenanceFee(APIstub shim.ChaincodeStubInterfa
 		if bArrayMemberAlreadyWritten == true {
 			buffer.WriteString(",")
 		}
-		buffer.WriteString("\"Record\":")
 		buffer.WriteString(string(queryResponse.Value))
-		buffer.WriteString("}")
 		bArrayMemberAlreadyWritten = true
 	}
 	buffer.WriteString("]")

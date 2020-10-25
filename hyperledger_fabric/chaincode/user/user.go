@@ -16,9 +16,9 @@ type User struct {
 	Username string `json:"username"`
 	Email string `json:"email"`
 	Password string `json:"password"`
-	DateOfBirth string `json:"dateofbirth"`
+	DateOfBirth string `json:"dateofBirth"`
 	Gender string `json:"gender"`
-	TelephoneNum string `json:"telephonenum"`
+	TelephoneNum string `json:"telephoneNum"`
 	Permission string `json:"permission"`
 	Membership string `json:"membership"`
 	Balance string `json:"balance"`
@@ -82,6 +82,10 @@ func  (s *SmartContract) updateUser(APIstub shim.ChaincodeStubInterface, args []
 	}
 
 	userAsBytes, _ := APIstub.GetState(args[1])
+	if(userAsBytes == nil) {
+		return shim.Error("This user is not exist. Update fail")
+	}
+	
 	user := User{}
 
 	json.Unmarshal(userAsBytes, &user)
@@ -132,6 +136,10 @@ func (s *SmartContract) addAttribute(APIstub shim.ChaincodeStubInterface, args [
 	}
 
 	userAsBytes, _ := APIstub.GetState(args[0])
+	if(userAsBytes == nil) {
+		return shim.Error("This user is not exist. Update fail")
+	}
+	
 	user := User{}
 
 	json.Unmarshal(userAsBytes, &user)
@@ -156,6 +164,10 @@ func (s *SmartContract) updateAttribute(APIstub shim.ChaincodeStubInterface, arg
 	}
 
 	userAsBytes, _ := APIstub.GetState(args[0])
+	if(userAsBytes == nil) {
+		return shim.Error("This user is not exist. Update fail")
+	}
+
 	preUser := User{}
 	newUser := User{}
 
@@ -205,6 +217,10 @@ func (s *SmartContract) removeAttribute(APIstub shim.ChaincodeStubInterface, arg
 	}
 
 	userAsBytes, _ := APIstub.GetState(args[0])
+	if(userAsBytes == nil) {
+		return shim.Error("This user is not exist. Update fail")
+	}
+	
 	preUser := User{}
 	newUser := User{}
 

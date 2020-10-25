@@ -14,27 +14,27 @@ type SmartContract struct {
 
 type Trust struct {
 	Token string `json:"token"`
-	PreToken string `json:"pretoken"`
-	Name string `json:"name"`
-	TelephoneNum string `json:"telephonenum"`
-	RealtorName string `json:"realtorname"`
-	RealtorTelephoneNum string `json:"realtortelephonenum"`
-	RealtorCellphoneNum string `json:"realtorcellphonenum"`
+	PreToken string `json:"preToken"`
+	Username string `json:"username"`
+	TelephoneNum string `json:"telephoneNum"`
+	RealtorName string `json:"realtorName"`
+	RealtorTelephoneNum string `json:"realtorTelephoneNum"`
+	RealtorCellphoneNum string `json:"realtorCellphoneNum"`
 	Type string `json:"type"`
-	SecurityDeposit string `json:"securitydeposit"`
+	SecurityDeposit string `json:"securityDeposit"`
 	Rent string `json:"rent"`
 	Purpose string `json:"purpose"`
-	PeriodStart string `json:"periodstart"`
-	PeriodEnd string `json:"periodend"`
+	PeriodStart string `json:"periodStart"`
+	PeriodEnd string `json:"periodEnd"`
 	Etc string `json:"etc"`
 	Status string `json:"status"`
 	Contract string `json:"contract"`
-	Attachments []Attachment
+	Attachments []Attachment `json:"attachments"`
 }
 
 type Attachment struct {
-	Filename string `json:"filename"`
-	FilePath string `json:"filepath"`
+	Filename string `json:"fileName"`
+	FilePath string `json:"filePath"`
 }
 
 func (s *SmartContract) Init(APIstub shim.ChaincodeStubInterface) sc.Response {
@@ -73,7 +73,7 @@ func  (s *SmartContract) addTrust(APIstub shim.ChaincodeStubInterface, args []st
 	var trust = Trust{
 		Token : args[0],
 		PreToken : args[1],
-		Name : args[2],
+		Username : args[2],
 		TelephoneNum : args[3],
 		RealtorName : args[4],
 		RealtorTelephoneNum : args[5],
@@ -110,10 +110,14 @@ func  (s *SmartContract) updateTrust(APIstub shim.ChaincodeStubInterface, args [
 	}
 
 	trustAsBytes, _ := APIstub.GetState(args[1])
+	if(trustAsBytes == nil) {
+		return shim.Error("This trust is not exist. Update fail")
+	}
+
 	trust := Trust{}
 
 	json.Unmarshal(trustAsBytes, &trust)
-
+	
 	err := APIstub.DelState(args[1])
 	if err != nil {
 		return shim.Error("Fail Update")
@@ -122,7 +126,7 @@ func  (s *SmartContract) updateTrust(APIstub shim.ChaincodeStubInterface, args [
 	trust = Trust{
 		Token : args[0],
 		PreToken : args[1],
-		Name : args[2],
+		Username : args[2],
 		TelephoneNum : args[3],
 		RealtorName : args[4],
 		RealtorTelephoneNum : args[5],
@@ -173,13 +177,13 @@ func  (s *SmartContract) readTrust(APIstub shim.ChaincodeStubInterface, args []s
 	}
 
 	trustAsBytes, _ := APIstub.GetState(args[0])
-	
+
 	return shim.Success(trustAsBytes)
 }
 
 func  (s *SmartContract) readAllTrust(APIstub shim.ChaincodeStubInterface) sc.Response {
-	startKey := "0x0000000000000000000000000000000000000000000000000000000000000000"
-	endKey := "0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+	startKey := ""
+	endKey := ""
 
 	resultsIterator, err := APIstub.GetStateByRange(startKey, endKey)
 	if err != nil {
@@ -199,9 +203,7 @@ func  (s *SmartContract) readAllTrust(APIstub shim.ChaincodeStubInterface) sc.Re
 		if bArrayMemberAlreadyWritten == true {
 			buffer.WriteString(",")
 		}
-		buffer.WriteString("\"Record\":")
 		buffer.WriteString(string(queryResponse.Value))
-		buffer.WriteString("}")
 		bArrayMemberAlreadyWritten = true
 	}
 	buffer.WriteString("]")
