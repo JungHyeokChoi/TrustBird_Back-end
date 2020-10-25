@@ -1,5 +1,6 @@
 /.env
 /node_modules
+/pubilc/img/*
 
 /hyperledger_fabric/network/config/*
 /hyperledger_fabric/network/crypto-config/*
@@ -8,8 +9,8 @@
 /hyperledger_fabric/network/connection.yaml
 /hyperledger_fabric/network/explorer/connection-profile
 
-/hyperledger_fabric/application/node_modules
 /hyperledger_fabric/application/wallet
 
 /ipfs/application/node_modules
 /ipfs/network/compose
+/ipfs/network/go-ipfs-swarm-key-gen
