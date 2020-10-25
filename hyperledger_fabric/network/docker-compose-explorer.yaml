@@ -44,6 +44,6 @@ services:
       - ./crypto-config:/tmp/crypto
       - walletstore:/opt/wallet
     ports:
-      - 8080:8080
+      - 8000:8080
     networks:
       - mynetwork.com
