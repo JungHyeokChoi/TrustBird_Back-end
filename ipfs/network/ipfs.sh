@@ -39,7 +39,7 @@ function ipfsDelete() {
     echo
     
     NETWORK=$(docker network ls -f "name=ipfs_default" | awk 'NR == 2 {print $2}')
-    if [ -z $NETWORK ]; then
+    if [ $NETWORK="" ]; then
       if [ -d "compose" ]; then
         sudo rm -rf compose
         echo "Delete the folder associated with IPFS"
@@ -51,7 +51,7 @@ function ipfsDelete() {
 
 function privateSet() {
     NETWORK=$(docker network ls -f "name=$COMPOSE_NETWORK_NAME" | awk 'NR == 2 {print $2}')
-    if [ -z $NETWORK ]; then
+    if [ $NETWORK="" ]; then
         ipfsUp
     fi
         
@@ -68,13 +68,25 @@ function privateSet() {
         docker exec $node ipfs config --json API.HTTPHeaders.Access-Control-Allow-Methods '["PUT", "GET", "PUST"]'
     done
 
+
     # Generates swarm.key file for IPFS Private Network feature.
-    if [ ! -e "go-ipfs-swarm-key-gen/ipfs-swarm-key-gen/swarm.key" ]; then
-        echo "Generate swarm.key file"
+    echo "Generate swarm.key file"
+    
+    if [ ! -d "go-ipfs-swarm-key-gen" ]; then
+        git clone https://github.com/Kubuxu/go-ipfs-swarm-key-gen
+        
         cd go-ipfs-swarm-key-gen/ipfs-swarm-key-gen
-        ./ipfs-swarm-key-gen > swarm.key
+        
+        go build
 
         cd ../..
+    fi
+
+    if [ ! -e "go-ipfs-swarm-key-gen/ipfs-swarm-key-gen/swarm.key" ]; then
+      cd go-ipfs-swarm-key-gen/ipfs-swarm-key-gen
+      ./ipfs-swarm-key-gen > swarm.key
+
+      cd ../..
     fi
 
     echo
@@ -95,7 +107,7 @@ function privateSet() {
     # Setting node connetion
     for node in $Nodes; do
         echo "Setting node connetion in $node"
-        IPFS_HOST_ADDRESS=$(docker exec $node ipfs id -f="<addrs>\n" | grep 192.*.*.*)
+        IPFS_HOST_ADDRESS=$(docker exec $node ipfs id -f="<addrs>\n" | awk 'NR == 2 {print}')
         for ortherNode in $Nodes; do
             if [ "$node" != "$ortherNode" ]; then
                 docker exec $ortherNode ipfs bootstrap add $IPFS_HOST_ADDRESS
