@@ -1,4 +1,4 @@
-const ipfsAPI = require('ipfs-api');
+const ipfsAPI = require('ipfs-api')
 const fs = require('fs')
 
 const ipfs = ipfsAPI({
