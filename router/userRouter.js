@@ -299,7 +299,7 @@ router.route('/attribute')
             const request = {
                 gateway : User.gateway,
                 contract : User.contract,
-                email : email,
+                email : req.body.email,
                 targetAttr : req.body.targetAttr,
                 preValue : req.body.preValue,
                 newValue : req.body.newValue
@@ -315,7 +315,7 @@ router.route('/attribute')
             const request = {
                 gateway : User.gateway,
                 contract : User.contract,
-                email : email,
+                email : req.body.email,
                 targetAttr : req.body.targetAttr,
                 value : req.body.value
             }
