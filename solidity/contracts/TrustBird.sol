@@ -1,8 +1,8 @@
 pragma solidity ^0.5.0;
 
 contract TrustBird {
-    mapping(address => bytes32[]) private hashValueOfTrust;
-    mapping(address => bytes32[]) private hashValueOfContract;
+    mapping(string => bytes32[]) private hashValueOfTrust;
+    mapping(bytes32 => bytes32) private hashValueOfContract;
     
     address private owner;
     
@@ -15,48 +15,45 @@ contract TrustBird {
         owner = msg.sender;
         maxValue = 65535;
     }
-    
-    function getHashValueOfTrust(address client) public view returns(bytes32[] memory) {
-        return hashValueOfTrust[client];
+
+    function getHashValueOfTrust(string memory email) public view returns(bytes32[] memory) {
+        return hashValueOfTrust[email];
     }
     
-    function getHashValueOfContract(address client) public view returns(bytes32[] memory) {
-        return hashValueOfContract[client];
-    }
-    
-    function addHashValueOfTrust(address client, bytes32 hashValue, uint16 index) public {
+    function addHashValueOfTrust(string memory email, bytes32 token, uint16 index) public {
         require(msg.sender == owner, "Wrong approach");
         
         totalTrust++;
         
         if(index == maxValue)
-            hashValueOfTrust[client].push(hashValue);
+            hashValueOfTrust[email].push(token);
         else
-            hashValueOfTrust[client][index] = hashValue;
+            hashValueOfTrust[email][index] = token;
+    }
+
+     function removeHashValueOfTrust(string memory email, uint16 index) public {
+        require(msg.sender == owner, "Wrong approach");
+        
+        totalTrust--;
+        delete hashValueOfTrust[email][index];
     }
     
-    function addHashValueOfContract(address client, bytes32 hashValue, uint16 index) public {
+    function getHashValueOfContract(bytes32 token) public view returns(bytes32) {
+        return hashValueOfContract[token];
+    }
+
+    function addHashValueOfContract(bytes32 trustToken, bytes32 contractToken) public {
         require(msg.sender == owner, "Wrong approach");
         
         totalContract++;
     
-        if(index == maxValue)
-            hashValueOfContract[client].push(hashValue);
-        else
-            hashValueOfContract[client][index] = hashValue;
+        hashValueOfContract[trustToken] = contractToken;
     }
     
-    function removeHashValueOfTrust(address client, uint16 index) public {
-        require(msg.sender == owner, "Wrong approach");
-        
-        totalTrust--;
-        delete hashValueOfTrust[client][index];
-    }
-    
-    function removeHashValueOfContract(address client, uint16 index) public {
+    function removeHashValueOfContract(bytes32 token) public {
         require(msg.sender == owner, "Wrong approach");
         
         totalContract--;
-        delete hashValueOfContract[client][index];
+        delete hashValueOfContract[token];
     }
 }

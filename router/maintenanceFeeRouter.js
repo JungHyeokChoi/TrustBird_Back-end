@@ -22,7 +22,6 @@ router.route('/input')
         const MaintenanceFee = await wallet('maintenanceFee')
 
         const maintenanceFeeRequest = {
-            gateway : MaintenanceFee.gateway,
             contract : MaintenanceFee.contract,
             claimingAgency : req.body.claimingAgency,
             electronicPaymentNum : req.body.electronicPaymentNum,
@@ -44,7 +43,6 @@ router.route('/input')
             const User = await wallet('user')
 
             const userRequest = {
-                gateway : User.gateway,
                 contract : User.contract,
                 email : req.body.email,
                 targetAttr : 'MaintenanceFee',
@@ -73,7 +71,6 @@ router.route('/update')
         const MaintenanceFee = await wallet('maintenanceFee')
 
         const request = {
-            gateway : MaintenanceFee.gateway,
             contract : MaintenanceFee.contract,
             claimingAgency : req.body.claimingAgency,
             electronicPaymentNum : req.body.electronicPaymentNum,
@@ -102,7 +99,6 @@ router.route('/delete')
         const MaintenanceFee = await wallet('maintenanceFee')
 
         const maintenanceFeeRequest = {
-            gateway : MaintenanceFee.gateway,
             contract : MaintenanceFee.contract,
             electronicPaymentNum : req.body.electronicPaymentNum
         }
@@ -115,7 +111,6 @@ router.route('/delete')
             const User = await wallet('user')
 
             const userRequest = {
-                gateway : User.gateway,
                 contract : User.contract,
                 email : req.body.email,
                 targetAttr : 'MaintenanceFee',
@@ -138,9 +133,8 @@ router.route('/find')
         const MaintenanceFee = await wallet('maintenanceFee')
 
         const request = {
-            gateway : MaintenanceFee.gateway,
             contract : MaintenanceFee.contract,
-            electronicPaymentNum : req.body.electronicPaymentNum
+            electronicPaymentNum : req.query.electronicPaymentNum
         }
 
         const response = await maintenanceFeeTx.readMaintenanceFee(request)
@@ -161,7 +155,6 @@ router.route('/list')
         const MaintenanceFee = await wallet('maintenanceFee')
 
         const request = {
-            gateway : MaintenanceFee.gateway,
             contract : MaintenanceFee.contract
         }
 

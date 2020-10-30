@@ -6,15 +6,15 @@ const { sendTransactionProposal } = require('./utils')
 const trustTx = {
     addTrust : async(request) => {
         try {
-            const values = new Array()
+            const trust = new Array()
 
-            objectToArray(request.values, values)
+            objectToArray(request.trust, trust)
 
             const peer_request = {
                 gateway : request.gateway,
                 chaincodeId : 'trust',
                 fcn : 'addTrust',
-                args : values,
+                args : trust,
             }
 
             await sendTransactionProposal(peer_request)
@@ -30,15 +30,15 @@ const trustTx = {
     
     updateTrust : async(request) => {
         try {
-            const values = new Array()
+            const trust = new Array()
 
-            objectToArray(request.values, values)
+            objectToArray(request.trust, trust)
 
             const peer_request = {
                 gateway : request.gateway,
                 chaincodeId : 'trust',
                 fcn : 'updateTrust',
-                args : values,
+                args : trust,
             }
 
             await sendTransactionProposal(peer_request)

@@ -35,15 +35,50 @@ router.route('/enroll')
             const token = await jsonToHash(req.body)
             req.body.token = token
 
-            const trustToken = req.body.trustToken
-            delete req.body.trustToken
-
             const Contract = await wallet('contract')
 
             const contractRequest = {
                 gateway : Contract.gateway,
-                contract : Contract.contract,
-                values : req.body
+                contract : {
+                    token : req.body.token,
+                    preToken : req.body.preToken,
+                    locatino : req.body.location,
+                    landCategory : req.body.landCategory,
+                    landArea : req.body.landArea,
+                    buildingPurpose : req.body.buildingPurpose,
+                    buildingArea : req.body.buildingArea,
+                    partOfLeese : req.body.partOfLeese,
+                    partOfLeeseArea : req.body.partOfLeeseArea,
+                    rentType : req.body.rentType,
+                    periodStart : req.body.periodStart,
+                    periodEnd : req.body.periodEnd,
+                    securityDeposit : req.body.securityDeposit,
+                    contractPrice : req.body.contractPrice,
+                    interimPrice : req.body.interimPrice,
+                    balance : req.body.balance,
+                    rent : req.body.rent,
+                    specialAgreement : req.body.specialAgreement,
+                    lessor : {
+                        address : req.body.lessor.address,
+                        RRN : req.body.lessor.RRN,
+                        name : req.body.lessor.name,
+                        telephoneNum : req.body.lessor.telephoneNum
+                    },
+                    lessee : {
+                        address : req.body.lessee.address,
+                        RRN : req.body.lessee.RRN,
+                        name : req.body.lessee.name,
+                        telephoneNum : req.body.lessee.telephoneNum
+                    },
+                    realtor : {
+                        address: req.body.realtor.address,
+                        officeName: req.body.realtor.officeName,
+                        name: req.body.realtor.name,
+                        registrationNum: req.body.realtor.registrationNum,
+                        telephoneNum: req.body.realtor.telephoneNum
+                    },
+                    attachments : req.body.files,
+                }
             }
 
             let result = await contractTx.addContract(contractRequest)
@@ -54,9 +89,8 @@ router.route('/enroll')
                 const Trust = await wallet('trust')
                 
                 const trustRequest = {
-                    gateway : Trust.gateway,
                     contract : Trust.contract,
-                    trustToken : trustToken,
+                    trustToken : req.body.trustToken,
                     contractToken : token
                 }
 
@@ -96,15 +130,50 @@ router.route('/update')
             const token = await jsonToHash(req.body)
             req.body.token = token
 
-            const trustToken = req.body.trustToken
-            delete req.body.trustToken
-
             const Contract = await wallet('contract')
 
             const contractRequest = {
                 gateway : Contract.gateway,
-                contract : Contract.contract,
-                values : req.body
+                contract : {
+                    token : req.body.token,
+                    preToken : req.body.preToken,
+                    locatino : req.body.location,
+                    landCategory : req.body.landCategory,
+                    landArea : req.body.landArea,
+                    buildingPurpose : req.body.buildingPurpose,
+                    buildingArea : req.body.buildingArea,
+                    partOfLeese : req.body.partOfLeese,
+                    partOfLeeseArea : req.body.partOfLeeseArea,
+                    rentType : req.body.rentType,
+                    periodStart : req.body.periodStart,
+                    periodEnd : req.body.periodEnd,
+                    securityDeposit : req.body.securityDeposit,
+                    contractPrice : req.body.contractPrice,
+                    interimPrice : req.body.interimPrice,
+                    balance : req.body.balance,
+                    rent : req.body.rent,
+                    specialAgreement : req.body.specialAgreement,
+                    lessor : {
+                        address : req.body.lessor.address,
+                        RRN : req.body.lessor.RRN,
+                        name : req.body.lessor.name,
+                        telephoneNum : req.body.lessor.telephoneNum
+                    },
+                    lessee : {
+                        address : req.body.lessee.address,
+                        RRN : req.body.lessee.RRN,
+                        name : req.body.lessee.name,
+                        telephoneNum : req.body.lessee.telephoneNum
+                    },
+                    realtor : {
+                        address: req.body.realtor.address,
+                        officeName: req.body.realtor.officeName,
+                        name: req.body.realtor.name,
+                        registrationNum: req.body.realtor.registrationNum,
+                        telephoneNum: req.body.realtor.telephoneNum
+                    },
+                    attachments : req.body.files,
+                }
             }
 
             let result = await contractTx.updateContract(contractRequest)
@@ -115,9 +184,8 @@ router.route('/update')
                 const Trust = await wallet('trust')
                 
                 const trustRequest = {
-                    gateway : Trust.gateway,
                     contract : Trust.contract,
-                    trustToken : trustToken,
+                    trustToken : req.body.trustToken,
                     contractToken : token
                 }
 
@@ -138,7 +206,6 @@ router.route('/delete')
         const Contract = await wallet('contract')
 
             const contractRequest = {
-                gateway : Contract.gateway,
                 contract : Contract.contract,
                 token : req.body.token
             }
@@ -151,7 +218,6 @@ router.route('/delete')
                 const Trust = await wallet('trust')
                 
                 const trustRequest = {
-                    gateway : Trust.gateway,
                     contract : Trust.contract,
                     trustToken : req.body.trustToken,
                     contractToken : ""
@@ -173,9 +239,8 @@ router.route('/find')
         const Contract = await wallet('contract')
 
         const request = {
-            gateway : Contract.gateway,
             contract : Contract.contract,
-            token : req.body.token
+            token : req.query.token
         }
 
         const response = await contractTx.readContract(request)
@@ -196,7 +261,6 @@ router.route('/list')
         const Contract = await wallet('contract')
 
         const request = {
-            gateway : Contract.gateway,
             contract : Contract.contract
         }
 

@@ -20,11 +20,6 @@ router.route('/subscription')
                 res.status(500).json({error : 'Internal error please try again'})
             }
             const email = req.user.permission === 'user' ? req.user.email : req.body.email
-            const isEmail = 'email' in req.body
-
-            if(isEmail) {
-                delete req.body.email
-            }
 
             const files = new Array()
 
@@ -48,8 +43,25 @@ router.route('/subscription')
 
             const trustRequest = {
                 gateway : Trust.gateway,
-                contract : Trust.contract,
-                values : req.body
+                trust : {
+                    token : req.body.token,
+                    preToken : req.body.preToken,
+                    username : req.body.username,
+                    telephoneNum : req.body.telephoneNum,
+                    realtorName : req.body.realtorName,
+                    realtorTelephoneNum : req.body.realtorTelephoneNum,
+                    realtorCellphoneNum : req.body.realtorCellphoneNum,
+                    type : req.body.type,
+                    securityDeposit : req.body.securityDeposit,
+                    rent : req.body.rent,
+                    purpose : req.body.purpose,
+                    periodStart : req.body.peiriodStart,
+                    periodEnd : req.body.periodEnd,
+                    etc : req.body.etc,
+                    status : req.body.status,
+                    contract : req.body.contract,
+                    attachments : req.body.files
+                }
             }
 
             let result = await trustTx.addTrust(trustRequest)
@@ -60,7 +72,6 @@ router.route('/subscription')
                 const User = await wallet('user')
 
                 const userRequest = {
-                    gateway : User.gateway,
                     contract : User.contract,
                     email : email,
                     targetAttr : 'Trust',
@@ -86,11 +97,6 @@ router.route('/update')
                 res.status(500).json({error : 'Internal error please try again'})
             }
             const email = req.user.permission === 'user' ? req.user.email : req.body.email
-            const isEmail = 'email' in req.body
-
-            if(isEmail) {
-                delete req.body.email
-            }
 
             const files = new Array()
             
@@ -114,8 +120,25 @@ router.route('/update')
 
             const trustRequest = {
                 gateway : Trust.gateway,
-                contract : Trust.contract,
-                values : req.body
+                trust : {
+                    token : req.body.token,
+                    preToken : req.body.preToken,
+                    username : req.body.username,
+                    telephoneNum : req.body.telephoneNum,
+                    realtorName : req.body.realtorName,
+                    realtorTelephoneNum : req.body.realtorTelephoneNum,
+                    realtorCellphoneNum : req.body.realtorCellphoneNum,
+                    type : req.body.type,
+                    securityDeposit : req.body.securityDeposit,
+                    rent : req.body.rent,
+                    purpose : req.body.purpose,
+                    periodStart : req.body.peiriodStart,
+                    periodEnd : req.body.periodEnd,
+                    etc : req.body.etc,
+                    status : req.body.status,
+                    contract : req.body.contract,
+                    attachments : req.body.files
+                }
             }
 
             let { result, error } = await trustTx.updateTrust(trustRequest)
@@ -127,7 +150,6 @@ router.route('/update')
                 const User = await wallet('user')
 
                 const userRequest = {
-                    gateway : User.gateway,
                     contract : User.contract,
                     email : email,
                     targetAttr : 'Trust',
@@ -154,7 +176,6 @@ router.route('/delete')
         const Trust = await wallet('trust')
 
         let trustRequest = {
-            gateway : Trust.gateway,
             contract : Trust.contract,
             token : req.body.token
         }
@@ -173,7 +194,6 @@ router.route('/delete')
                 const Contract = await wallet('contract')
             
                 const contractRequest = {
-                    gateway : Contract.gateway,
                     contract : Contract.contract,
                     token : trustResponse.contract
                 }
@@ -197,7 +217,6 @@ router.route('/delete')
                 const User = await wallet('user')
 
                 const userRequest = {
-                    gateway : User.gateway,
                     contract : User.contract,
                     email : email,
                     targetAttr : 'Trust',
@@ -221,9 +240,8 @@ router.route('/find')
         const Trust = await wallet('trust')
 
         const request = {
-            gateway : Trust.gateway,
             contract : Trust.contract,
-            token : req.body.token
+            token : req.query.token
         }
 
         const response = await trustTx.readTrust(request)
@@ -244,7 +262,6 @@ router.route('/list')
         const Trust = await wallet('trust')
 
         const request = {
-            gateway : Trust.gateway,
             contract : Trust.contract
         }
 
@@ -281,9 +298,8 @@ router.route('/status')
         const Trust = await wallet('trust')
 
         const request = {
-            gateway : Trust.gateway,
             contract : Trust.contract,
-            token : req.body.token
+            token : req.query.token
         }
 
         const response = await trustTx.readStatus(request)
@@ -302,7 +318,6 @@ router.route('/status')
         const Trust = await wallet('trust')
 
         const request = {
-            gateway : Trust.gateway,
             contract : Trust.contract,
             token : req.body.token,
             status : req.body.status

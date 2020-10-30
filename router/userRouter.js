@@ -17,7 +17,6 @@ router.route('/signup')
         const User = await wallet('user')
         
         let request = {
-            gateway : User.gateway,
             contract : User.contract,
             email : req.body.email
         }
@@ -31,7 +30,6 @@ router.route('/signup')
             res.status(401).json({message : 'This user exist'})
         } else {
             request = {
-                gateway : User.gateway,
                 contract : User.contract,
                 username : req.body.username,
                 email : req.body.email,
@@ -91,7 +89,6 @@ router.route('/modified')
         const User = await wallet('user')
         
         let request = {
-            gateway : User.gateway,
             contract : User.contract,
             email : email
         }
@@ -105,7 +102,6 @@ router.route('/modified')
             res.status(401).json({message : 'This user not exist'})
         } else {
             request = {
-                gateway : User.gateway,
                 contract : User.contract,
                 username : req.body.username,
                 email : email,
@@ -132,12 +128,11 @@ router.route('/modified')
 // User find
 router.route('/find')
     .get(authenticate.user, async(req, res) => {
-        const email = req.user.permission === 'user' ? req.user.email : req.body.email
+        const email = req.user.permission === 'user' ? req.user.email : req.query.email
 
         const User = await wallet('user')
 
         const request = {
-            gateway : User.gateway,
             contract : User.contract,
             email : email
         }
@@ -162,7 +157,6 @@ router.route('/withdrawal')
         const User = await wallet('user')
 
         const userRequest = {
-            gateway : User.gateway,
             contract : User.contract,
             email : email
         }
@@ -183,7 +177,6 @@ router.route('/withdrawal')
 
                 for(let token of userResponse.user.trust) {
                     const trustRequest = {
-                        gateway : Trust.gateway,
                         contract : Trust.contract,
                         token : token
                     }
@@ -202,7 +195,6 @@ router.route('/withdrawal')
                             const Contract = await wallet('contract')
 
                             const contractRequest = {
-                                gateway : Contract.gateway,
                                 contract : Contract.contract,
                                 token : trustResponse.trust.contract
                             }
@@ -228,7 +220,6 @@ router.route('/withdrawal')
 
                 for(let electronicPaymentNum of userResponse.user.maintenanceFee) {
                     const maintenanceFeeRequest = {
-                        gateway : MaintenanceFee.gateway,
                         contract : MaintenanceFee.contract,
                         electronicPaymentNum : electronicPaymentNum
                     }
@@ -254,15 +245,14 @@ router.route('/withdrawal')
 // User find or update Target attribute 
 router.route('/attribute')
     .get(authenticate.user, async(req, res) => {
-        const email = req.user.permission === 'user' ? req.user.email : req.body.email
+        const email = req.user.permission === 'user' ? req.user.email : req.query.email
 
         const User = await wallet('user')
 
         const request = {
-            gateway : User.gateway,
             contract : User.contract,
             email : email,
-            targetAttr : req.body.targetAttr
+            targetAttr : req.query.targetAttr
         }
 
         const response  = await userTx.readAttribute(request)
@@ -282,7 +272,6 @@ router.route('/attribute')
 
         if (req.body.invoke === 'add') {
             const request = {
-                gateway : User.gateway,
                 contract : User.contract,
                 email : req.body.email,
                 targetAttr : req.body.targetAttr,
@@ -297,7 +286,6 @@ router.route('/attribute')
             }
         } else if (req.body.invoke === 'update') {
             const request = {
-                gateway : User.gateway,
                 contract : User.contract,
                 email : req.body.email,
                 targetAttr : req.body.targetAttr,
@@ -313,7 +301,6 @@ router.route('/attribute')
             }
         } else if (req.body.invoke === 'remove') {
             const request = {
-                gateway : User.gateway,
                 contract : User.contract,
                 email : req.body.email,
                 targetAttr : req.body.targetAttr,
@@ -334,12 +321,11 @@ router.route('/attribute')
 // User Trust List
 router.route('/trustlist')
     .get(authenticate.user, async(req, res)=>{
-        const email = req.user.permission === 'admin' ? req.body.email : req.user.email
+        const email = req.user.permission === 'user' ? req.user.email : req.query.email
         
         const User = await wallet('user')
 
         const userRequest = {
-            gateway : User.gateway,
             contract : User.contract,
             email : email,
             targetAttr : 'Trust'
@@ -359,7 +345,6 @@ router.route('/trustlist')
                 const Trust = await wallet('trust')
 
                 const trustRequest = {
-                    gateway : Trust.gateway,
                     contract : Trust.contract,
                     token : token
                 }
@@ -393,12 +378,11 @@ router.route('/trustlist')
 // User MaintenanceFee List
 router.route('/maintenancefeelist')
     .get(authenticate.user, async(req, res) => {
-        const email = req.user.permission === 'admin' ? req.body.email : req.user.email
+        const email = req.user.permission === 'user' ? req.user.email : req.query.email
         
         const User = await wallet('user')
 
         const userRequest = {
-            gateway : User.gateway,
             contract : User.contract,
             email : email,
             targetAttr : 'MaintenanceFee'
@@ -418,7 +402,6 @@ router.route('/maintenancefeelist')
                 const MaintenanceFee = await wallet('maintenanceFee')
 
                 const maintenanceFeeRequest = {
-                    gateway : MaintenanceFee.gateway,
                     contract : MaintenanceFee.contract,
                     electronicPaymentNum : electronicPaymentNum
                 }

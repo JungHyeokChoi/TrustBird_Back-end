@@ -6,15 +6,15 @@ const { sendTransactionProposal } = require('./utils')
 const contractTx = {
     addContract : async(request) => {
         try {
-            const values = new Array()
+            const contract = new Array()
 
-            objectToArray(request.values, values)
+            objectToArray(request.contract, contract)
 
             const peer_request = {
                 gateway : request.gateway,
                 chaincodeId : 'contract',
                 fcn : 'addContract',
-                args : values,
+                args : contract,
             }
 
             await sendTransactionProposal(peer_request)
@@ -30,15 +30,15 @@ const contractTx = {
                 
     updateContract : async(request) => {
         try {
-            const values = new Array()
+            const contract = new Array()
 
-            objectToArray(request.values, values)
+            objectToArray(request.contract, contract)
 
             const peer_request = {
                 gateway : request.gateway,
                 chaincodeId : 'contract',
                 fcn : 'updateContract',
-                args : values,
+                args : contract,
             }
 
             await sendTransactionProposal(peer_request)
