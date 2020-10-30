@@ -14,6 +14,8 @@ const authenticate = require('./passport/authenticate')
 router.route('/enroll')
     .post(authenticate.admin, (req, res) => {
         upload.array('attachments')(req, res, async(err) => {
+            console.log('Contract Enroll...')
+
             if(err) {
                 console.log(err)
                 res.status(500).json({error : 'Internal error please try again'})
@@ -109,6 +111,8 @@ router.route('/enroll')
 router.route('/update')
     .post(authenticate.admin, (req, res) => {
         upload.array('attachments')(req, res, async(err) => {
+            console.log('Contract Update...')
+
             if(err) {
                 console.log(err)
                 res.status(500).json({error : 'Internal error please try again'})
@@ -203,6 +207,8 @@ router.route('/update')
 // Contract Delete
 router.route('/delete')
     .post(authenticate.admin, async(req, res) => {
+        console.log('Contract Delete...')
+
         const Contract = await wallet('contract')
 
             const contractRequest = {
@@ -236,6 +242,8 @@ router.route('/delete')
 // Contract Find
 router.route('/find')
     .get(authenticate.user, async(req, res) => {
+        console.log('Contract Find...')
+
         const Contract = await wallet('contract')
 
         const request = {
@@ -258,6 +266,8 @@ router.route('/find')
 // Contract List
 router.route('/list')
     .get(authenticate.admin, async(req, res) => {
+        console.log('Contract List...')
+
         const Contract = await wallet('contract')
 
         const request = {

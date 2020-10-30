@@ -14,6 +14,8 @@ const authenticate = require('./passport/authenticate')
 // User SignUp
 router.route('/signup')
     .post(async(req, res) => {
+        console.log('User SignUp...')
+
         const User = await wallet('user')
         
         let request = {
@@ -55,6 +57,8 @@ router.route('/signup')
 // User SignIn
 router.route('/signin')
     .post((req, res, next) => {
+        console.log('User SignIn...')
+
         passport.authenticate('local', (err, user, info) => {
             if(err) {
                 console.log(err)
@@ -77,6 +81,8 @@ router.route('/signin')
 // User SignOut
 router.route('/signout')
     .get((req, res) => {
+        console.log('User SignOut...')
+
         req.logout()
         res.status(200).json({message : 'Sign Out Success'})
     })
@@ -84,6 +90,8 @@ router.route('/signout')
 // User Modified
 router.route('/modified')
     .post(authenticate.user, async(req, res) => {
+        console.log('User Modified...')
+
         const email = req.user.permission === 'user' ? req.user.email : req.body.email
 
         const User = await wallet('user')
@@ -125,9 +133,11 @@ router.route('/modified')
         }
     })
 
-// User find
+// User Find
 router.route('/find')
     .get(authenticate.user, async(req, res) => {
+        console.log('User Find...')
+
         const email = req.user.permission === 'user' ? req.user.email : req.query.email
 
         const User = await wallet('user')
@@ -152,6 +162,8 @@ router.route('/find')
 // User Withdrawal
 router.route('/withdrawal')
     .post(authenticate.user, async(req, res) => {
+        console.log('User Withdrawal...')
+
         const email = req.user.permission === 'user' ? req.user.email : req.body.email
 
         const User = await wallet('user')
@@ -242,9 +254,11 @@ router.route('/withdrawal')
         }
     })
 
-// User find or update Target attribute 
+// User Find or Update Target attribute 
 router.route('/attribute')
     .get(authenticate.user, async(req, res) => {
+        console.log('User Find Target attribute...')
+
         const email = req.user.permission === 'user' ? req.user.email : req.query.email
 
         const User = await wallet('user')
@@ -268,6 +282,8 @@ router.route('/attribute')
     })
 
     .post(authenticate.admin, async(req, res) => {
+        console.log('User Update Target attribute...')
+
         const User = await wallet('user')
 
         if (req.body.invoke === 'add') {
@@ -321,6 +337,8 @@ router.route('/attribute')
 // User Trust List
 router.route('/trustlist')
     .get(authenticate.user, async(req, res)=>{
+        console.log('User Trust List...')
+
         const email = req.user.permission === 'user' ? req.user.email : req.query.email
         
         const User = await wallet('user')
@@ -378,6 +396,8 @@ router.route('/trustlist')
 // User MaintenanceFee List
 router.route('/maintenancefeelist')
     .get(authenticate.user, async(req, res) => {
+        console.log('User MaintenanceFee List...')
+
         const email = req.user.permission === 'user' ? req.user.email : req.query.email
         
         const User = await wallet('user')

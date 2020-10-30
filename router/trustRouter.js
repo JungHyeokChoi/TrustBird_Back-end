@@ -15,6 +15,8 @@ const authenticate = require('./passport/authenticate')
 router.route('/subscription')
     .post(authenticate.user, (req, res) => {
         upload.array('attachments')(req, res, async(err) => {
+            console.log('Trust Subscription...')
+
             if(err) {
                 console.log(err)
                 res.status(500).json({error : 'Internal error please try again'})
@@ -92,6 +94,8 @@ router.route('/subscription')
 router.route('/update')
     .post(authenticate.user, (req, res) => {
         upload.array('attachments')(req, res, async(err) => {
+            console.log('Trust Upload...')
+
             if(err) {
                 console.log(err)
                 res.status(500).json({error : 'Internal error please try again'})
@@ -171,6 +175,8 @@ router.route('/update')
 // Trust Delete
 router.route('/delete')
     .post(authenticate.user, async(req, res) => {
+        console.log('Trust Delete...')
+
         const email = req.user.permission === 'user' ? req.user.email : req.body.email
         
         const Trust = await wallet('trust')
@@ -237,6 +243,8 @@ router.route('/delete')
 // Trust Find
 router.route('/find')
     .get(authenticate.user, async(req, res) => {
+        console.log('Trust Find...')
+
         const Trust = await wallet('trust')
 
         const request = {
@@ -259,6 +267,8 @@ router.route('/find')
 // Trust List
 router.route('/list')
     .get(authenticate.admin, async(req, res) => {
+        console.log('Trust List...')
+
         const Trust = await wallet('trust')
 
         const request = {
@@ -295,6 +305,8 @@ router.route('/list')
 // Trsut Status Find & Change
 router.route('/status')
     .get(authenticate.user, async(req, res) => {
+        console.log('Trsut Status Find...')
+
         const Trust = await wallet('trust')
 
         const request = {
@@ -315,6 +327,8 @@ router.route('/status')
     })
 
     .post(authenticate.admin, async(req, res) => {
+        console.log('Trsut Status Change...')
+
         const Trust = await wallet('trust')
 
         const request = {

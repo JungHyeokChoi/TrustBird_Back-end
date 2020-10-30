@@ -13,6 +13,8 @@ const authenticate = require('./passport/authenticate')
 // MaintenanceFee Input
 router.route('/input')
     .post(upload.single('giro'), authenticate.admin, async(req, res) => {
+        console.log('MaintenanceFee Input...')
+
         const { filePath, fileName } = await ipfs.add({
             name : req.file.originalname,
             path : req.file.path,
@@ -62,6 +64,8 @@ router.route('/input')
 // MaintenanceFee Update
 router.route('/update')
     .post(upload.single('giro'), authenticate.admin, async(req, res) => {
+        console.log('MaintenanceFee Update...')
+
         const { filePath, fileName } = await ipfs.add({
             name : req.file.originalname,
             path : req.file.path,
@@ -96,6 +100,8 @@ router.route('/update')
 // MaintenanceFee Delete
 router.route('/delete')
     .post(authenticate.admin, async(req, res) => {
+        console.log('MaintenanceFee Delete...')
+
         const MaintenanceFee = await wallet('maintenanceFee')
 
         const maintenanceFeeRequest = {
@@ -130,6 +136,8 @@ router.route('/delete')
 // MaintenanceFee Find
 router.route('/find')
     .get(authenticate.user, async(req, res) => {    
+        console.log('MaintenanceFee Find...')
+
         const MaintenanceFee = await wallet('maintenanceFee')
 
         const request = {
@@ -152,6 +160,8 @@ router.route('/find')
 // MaintenanceFee List
 router.route('/list')
     .get(authenticate.admin, async(req, res) => {
+        console.log('MaintenanceFee List...')
+
         const MaintenanceFee = await wallet('maintenanceFee')
 
         const request = {
