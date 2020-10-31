@@ -18,9 +18,11 @@
     "ipfs": "^0.50.2",
     "ipfs-api": "^26.1.2",
     "ipfs-message-port-server": "^0.2.2",
+    "jsonwebtoken": "^8.5.1",
     "mongoose": "^5.10.3",
     "multer": "^1.4.2",
     "passport": "^0.4.1",
+    "passport-jwt": "^4.0.0",
     "passport-local": "^1.0.0",
     "shelljs": "^0.8.4",
     "yaml": "^1.10.0"
