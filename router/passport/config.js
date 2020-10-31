@@ -1,4 +1,8 @@
+const passportJWT = require('passport-jwt');
 const LocalStrategy = require('passport-local').Strategy
+const JWTStrategy   = passportJWT.Strategy;
+const ExtractJWT = passportJWT.ExtractJwt;
+
 const { isCorrectPassword } = require('../utils')
 
 const userTx = require('../hyperledger_fabric/userTx')
@@ -7,18 +11,14 @@ const { wallet } = require('../hyperledger_fabric/utils')
 
 exports.config = (passport) => {
     passport.serializeUser((user, done) => {
-        const result = {
-            email : user.email,
-            permission : user.permission
-        }
-        done(null, result)
+        done(null, user)
     })
-    
+
     passport.deserializeUser((user, done) => {
         done(null, user)
     })
-    
-    passport.use('local', new LocalStrategy({ usernameField : 'email', passwordField : 'password', session : true }, async(email, password, done) => {
+
+    passport.use(new LocalStrategy({ usernameField : 'email', passwordField : 'password', session : true }, async(email, password, done) => {
         const User = await wallet('user')
 
         const request = {
@@ -39,4 +39,13 @@ exports.config = (passport) => {
             done(null, response.user) 
         }
     }))
+
+    passport.use(new JWTStrategy({jwtFromRequest: ExtractJWT.fromAuthHeaderAsBearerToken(), secretOrKey : process.env.JWT_SECRET_KEY}, (jwtPayload, done) => {
+        if(jwtPayload) {
+            done(null, jwtPayload)
+        } else {
+            done(null, {message : "The token does not exist."})
+        }
+    }
+));
 }

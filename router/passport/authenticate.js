@@ -7,9 +7,14 @@
     pointManager : 포인트관리자
 */
 
+const jwt = require('jsonwebtoken')
+
 const admin = (req, res, next) => {
-    if(req.isAuthenticated()){
-        if(req.user.permission !== 'user') {
+    const user = verifyToken(req.cookies.user)
+    
+    if(user){
+        if(user.permission !== 'user') {
+            req.user = user
             next()
         } else {
             res.status(401).json({message : 'Invaild Authority'})
@@ -20,10 +25,28 @@ const admin = (req, res, next) => {
 }
 
 const user = (req, res, next) => {
-    if(req.isAuthenticated()){
+    const user = verifyToken(req.cookies.user)
+
+    if(user){
+        req.user = user
+
         next()
     } else {
         res.status(401).json({message : 'You are not sign in. please using after sign in'})
+    }
+}
+
+const verifyToken = (clientToken) => {
+    try {
+        const decoded = jwt.verify(clientToken, process.env.JWT_SECRET_KEY);
+
+        if (decoded) {
+            return decoded
+        } else {
+            res.status(401).json({ error: 'Unauthorized' });
+        }
+    } catch (err) {
+        res.status(401).json({ error: 'Token expired' });
     }
 }
 

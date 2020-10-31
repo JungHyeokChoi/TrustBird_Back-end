@@ -3,6 +3,7 @@ const passport = require('passport')
 
 const { passwordToHash, selectProperties } = require('./utils')
 const { wallet } = require('./hyperledger_fabric/utils')
+const jwt = require('jsonwebtoken')
 
 const userTx = require('./hyperledger_fabric/userTx')
 const trustTx = require('./hyperledger_fabric/trustTx')
@@ -59,7 +60,7 @@ router.route('/signin')
     .post((req, res, next) => {
         console.log('User SignIn...')
 
-        passport.authenticate('local', (err, user, info) => {
+        passport.authenticate('local', { session : false }, (err, user, info) => {
             if(err) {
                 console.log(err)
                 return next(err)
@@ -73,7 +74,17 @@ router.route('/signin')
                     console.log(err)
                     return next(err)
                 }
-                return res.status(200).json({message : 'SignIn Success'})
+                const SECRET_KEY = process.env.JWT_SECRET_KEY
+                const token = jwt.sign({
+                    username : user.username,
+                    email: user.email,
+                    permission : user.permission
+                }, SECRET_KEY, {
+                    expiresIn: '1m'
+                });
+                
+                res.cookie('user', token)
+                return res.status(201).json({token, message : 'SignIn Success'})
             })
         })(req, res, next)
     })
@@ -84,6 +95,7 @@ router.route('/signout')
         console.log('User SignOut...')
 
         req.logout()
+        res.clearCookie('user')
         res.status(200).json({message : 'Sign Out Success'})
     })
 
