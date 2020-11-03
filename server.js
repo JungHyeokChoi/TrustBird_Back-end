@@ -24,7 +24,12 @@ app.use(session({
         secure : false
     }
 }))
-app.use(cors())
+
+app.use(cors({
+    origin: true,
+    credentials: true,
+    methods: 'GET, POST',
+}))
 app.use(express.static('pubilc'))
 
 //Passport
