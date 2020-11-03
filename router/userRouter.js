@@ -80,10 +80,9 @@ router.route('/signin')
                     email: user.email,
                     permission : user.permission
                 }, SECRET_KEY, {
-                    expiresIn: '1m'
+                    expiresIn: '1h'
                 });
                 
-                res.cookie('user', token)
                 return res.status(201).json({token, message : 'SignIn Success'})
             })
         })(req, res, next)
@@ -95,7 +94,6 @@ router.route('/signout')
         console.log('User SignOut...')
 
         req.logout()
-        res.clearCookie('user')
         res.status(200).json({message : 'Sign Out Success'})
     })
 
@@ -459,6 +457,17 @@ router.route('/maintenancefeelist')
             }
             res.status(200).json(maintenanceFees)
         }
+    })
+
+router.route('/infomation')
+    .get(authenticate.user, (req, res) => {
+        // console.log(req.user)
+        // if(req.user === undefined) {
+        //     res.status(401).json({message : 'Please login'})
+        // } else {
+        //     res.status(200).json({user : req.user})
+        // }
+        res.status(200).json({user : req.user})
     })
 
 module.exports = router;

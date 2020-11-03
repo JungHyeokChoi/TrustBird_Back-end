@@ -7,14 +7,13 @@
     pointManager : 포인트관리자
 */
 
-const jwt = require('jsonwebtoken')
+const passport = require('passport')
 
 const admin = (req, res, next) => {
-    const user = verifyToken(req.cookies.user)
-    
+    verifyToken(req, res, next)
+
     if(user){
         if(user.permission !== 'user') {
-            req.user = user
             next()
         } else {
             res.status(401).json({message : 'Invaild Authority'})
@@ -25,29 +24,27 @@ const admin = (req, res, next) => {
 }
 
 const user = (req, res, next) => {
-    const user = verifyToken(req.cookies.user)
+    verifyToken(req, res, next)
 
     if(user){
-        req.user = user
-
         next()
     } else {
         res.status(401).json({message : 'You are not sign in. please using after sign in'})
     }
 }
 
-const verifyToken = (clientToken) => {
-    try {
-        const decoded = jwt.verify(clientToken, process.env.JWT_SECRET_KEY);
-
-        if (decoded) {
-            return decoded
-        } else {
-            res.status(401).json({ error: 'Unauthorized' });
+const verifyToken = (req, res, next) => {
+    return passport.authenticate('jwt', { session : false }, (err, user) => {
+        if(err) {
+            console.log(err)
+            return next(err)
         }
-    } catch (err) {
-        res.status(401).json({ error: 'Token expired' });
-    }
+        if(!user) {
+            return res.status(401).json({message : 'The user does not exist.' })
+        }
+
+        req.user = user
+    })(req, res, next)
 }
 
 module.exports = {

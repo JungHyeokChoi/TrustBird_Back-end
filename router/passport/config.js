@@ -44,7 +44,7 @@ exports.config = (passport) => {
         if(jwtPayload) {
             done(null, jwtPayload)
         } else {
-            done(null, {message : "The token does not exist."})
+            done(null, false, {message : "The token does not exist."})
         }
     }
 ));
