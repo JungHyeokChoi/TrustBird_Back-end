@@ -16,6 +16,8 @@ const contractTx = {
                 fcn : 'addContract',
                 args : contract,
             }
+            
+            console.log(contract)
 
             await sendTransactionProposal(peer_request)
 

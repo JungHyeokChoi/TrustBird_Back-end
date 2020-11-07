@@ -12,7 +12,7 @@ const authenticate = require('./passport/authenticate')
 
 // MaintenanceFee Input
 router.route('/input')
-    .post(upload.single('giro'), authenticate.admin, async(req, res) => {
+    .post(authenticate.admin, upload.single('giro'), async(req, res) => {
         console.log('MaintenanceFee Input...')
 
         const { filePath, fileName } = await ipfs.add({
@@ -63,7 +63,7 @@ router.route('/input')
 
 // MaintenanceFee Update
 router.route('/update')
-    .post(upload.single('giro'), authenticate.admin, async(req, res) => {
+    .post(authenticate.admin, upload.single('giro'), async(req, res) => {
         console.log('MaintenanceFee Update...')
 
         const { filePath, fileName } = await ipfs.add({

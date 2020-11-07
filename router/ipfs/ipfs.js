@@ -23,8 +23,8 @@ const ipfs_method = {
         })	
 
         return {
-            filePath : result[0].hash,
-            fileName : file.name
+            fileName : file.name,
+            filePath : result[0].hash
         }
     },
     

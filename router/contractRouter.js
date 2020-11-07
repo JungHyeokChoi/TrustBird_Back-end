@@ -12,196 +12,182 @@ const authenticate = require('./passport/authenticate')
 
 // Contract Enroll
 router.route('/enroll')
-    .post(authenticate.admin, (req, res) => {
-        upload.array('attachments')(req, res, async(err) => {
-            console.log('Contract Enroll...')
+    .post(authenticate.admin, upload.array('attachments'), async(req, res) => {
+        console.log('Contract Enroll...')
 
-            if(err) {
-                console.log(err)
-                res.status(500).json({error : 'Internal error please try again'})
+        const files = new Array()
+
+        for (const file of req.files) {
+            const result = await ipfs.add({
+                name : file.originalname,
+                path : file.path,
+                savePath : `contract/${req.body.trustToken}`
+            })
+
+            files.push(result)
+        }
+
+        req.body.files = files
+
+        const Contract = await wallet('contract')
+
+        const parseContract = JSON.parse(req.body.contract)
+        
+        const contractRequest = {
+            gateway : Contract.gateway,
+            contract : {
+                token : await jsonToHash(req.body),
+                preToken : parseContract.preToken,
+                locatino : parseContract.location,
+                landCategory : parseContract.landCategory,
+                landArea : parseContract.landArea,
+                buildingPurpose : parseContract.buildingPurpose,
+                buildingArea : parseContract.buildingArea,
+                partOfLease : parseContract.partOfLease,
+                partOfLeaseArea : parseContract.partOfLeaseArea,
+                rentType : parseContract.rentType,
+                periodStart : parseContract.periodStart,
+                periodEnd : parseContract.periodEnd,
+                securityDeposit : parseContract.securityDeposit,
+                contractPrice : parseContract.contractPrice,
+                interimPrice : parseContract.interimPrice,
+                balance : parseContract.balance,
+                rent : parseContract.rent,
+                specialAgreement : parseContract.specialAgreement,
+                lessor : {
+                    address : parseContract.lessor.address,
+                    RRN : parseContract.lessor.RRN,
+                    name : parseContract.lessor.name,
+                    telephoneNum : parseContract.lessor.telephoneNum
+                },
+                lessee : {
+                    address : parseContract.lessee.address,
+                    RRN : parseContract.lessee.RRN,
+                    name : parseContract.lessee.name,
+                    telephoneNum : parseContract.lessee.telephoneNum
+                },
+                realtor : {
+                    address: parseContract.realtor.address,
+                    officeName: parseContract.realtor.officeName,
+                    name: parseContract.realtor.name,
+                    registrationNum: parseContract.realtor.registrationNum,
+                    telephoneNum: parseContract.realtor.telephoneNum
+                },
+                attachments : req.body.files,
             }
-            const files = new Array()
+        }
 
-            for (const file of req.files) {
-                const result = await ipfs.add({
-                    name : file.originalname,
-                    path : file.path,
-                    savePath : `contract/${req.body.trustToken}`
-                })
-
-                files.push(result)
-            }
-
-            req.body.files = files
-
-            const token = await jsonToHash(req.body)
-            req.body.token = token
-
-            const Contract = await wallet('contract')
-
-            const contractRequest = {
-                gateway : Contract.gateway,
-                contract : {
-                    token : req.body.token,
-                    preToken : req.body.preToken,
-                    locatino : req.body.location,
-                    landCategory : req.body.landCategory,
-                    landArea : req.body.landArea,
-                    buildingPurpose : req.body.buildingPurpose,
-                    buildingArea : req.body.buildingArea,
-                    partOfLeese : req.body.partOfLeese,
-                    partOfLeeseArea : req.body.partOfLeeseArea,
-                    rentType : req.body.rentType,
-                    periodStart : req.body.periodStart,
-                    periodEnd : req.body.periodEnd,
-                    securityDeposit : req.body.securityDeposit,
-                    contractPrice : req.body.contractPrice,
-                    interimPrice : req.body.interimPrice,
-                    balance : req.body.balance,
-                    rent : req.body.rent,
-                    specialAgreement : req.body.specialAgreement,
-                    lessor : {
-                        address : req.body.lessor.address,
-                        RRN : req.body.lessor.RRN,
-                        name : req.body.lessor.name,
-                        telephoneNum : req.body.lessor.telephoneNum
-                    },
-                    lessee : {
-                        address : req.body.lessee.address,
-                        RRN : req.body.lessee.RRN,
-                        name : req.body.lessee.name,
-                        telephoneNum : req.body.lessee.telephoneNum
-                    },
-                    realtor : {
-                        address: req.body.realtor.address,
-                        officeName: req.body.realtor.officeName,
-                        name: req.body.realtor.name,
-                        registrationNum: req.body.realtor.registrationNum,
-                        telephoneNum: req.body.realtor.telephoneNum
-                    },
-                    attachments : req.body.files,
-                }
-            }
-
-            let result = await contractTx.addContract(contractRequest)
+        let result = await contractTx.addContract(contractRequest)
+        
+        if (!result) {
+            res.status(500).json({error : 'Internal error please try again'})
+        } else {
+            const Trust = await wallet('trust')
             
-            if (!result) {
-                res.status(500).json({error : 'Internal error please try again'})
-            } else {
-                const Trust = await wallet('trust')
-                
-                const trustRequest = {
-                    contract : Trust.contract,
-                    trustToken : req.body.trustToken,
-                    contractToken : token
-                }
-
-                result = await trustTx.setContract(trustRequest)
-
-                if(result) {
-                    res.status(200).json({message : 'Contract Enroll Success'})
-                } else {
-                    res.status(500).json({error : 'Internal error please try again'})
-                }
+            const trustRequest = {
+                contract : Trust.contract,
+                trustToken : req.body.trustToken,
+                contractToken : token
             }
-        })
+
+            result = await trustTx.setContract(trustRequest)
+
+            if(result) {
+                res.status(200).json({message : 'Contract Enroll Success'})
+            } else {
+                res.status(500).json({error : 'Internal error please try again'})
+            }
+        }
     })
 
 // Contract Update
 router.route('/update')
-    .post(authenticate.admin, (req, res) => {
-        upload.array('attachments')(req, res, async(err) => {
-            console.log('Contract Update...')
+    .post(authenticate.admin, upload.array('attachments'), async(req, res) => {
+        console.log('Contract Update...')
 
-            if(err) {
-                console.log(err)
-                res.status(500).json({error : 'Internal error please try again'})
+        const files = new Array()
+
+        for (const file of req.files) {
+            const result = await ipfs.add({
+                name : file.originalname,
+                path : file.path,
+                savePath : `contract/${req.body.trustToken}`
+            })
+
+            files.push(result)
+        }
+
+        req.body.files = files
+
+        const Contract = await wallet('contract')
+
+        const parseContract = JSON.parse(req.body.contract)
+
+        const contractRequest = {
+            gateway : Contract.gateway,
+            contract : {
+                token : await jsonToHash(req.body),
+                preToken : parseContract.preToken,
+                locatino : parseContract.location,
+                landCategory : parseContract.landCategory,
+                landArea : parseContract.landArea,
+                buildingPurpose : parseContract.buildingPurpose,
+                buildingArea : parseContract.buildingArea,
+                partOfLease : parseContract.partOfLease,
+                partOfLeaseArea : parseContract.partOfLeaseArea,
+                rentType : parseContract.rentType,
+                periodStart : parseContract.periodStart,
+                periodEnd : parseContract.periodEnd,
+                securityDeposit : parseContract.securityDeposit,
+                contractPrice : parseContract.contractPrice,
+                interimPrice : parseContract.interimPrice,
+                balance : parseContract.balance,
+                rent : parseContract.rent,
+                specialAgreement : parseContract.specialAgreement,
+                lessor : {
+                    address : parseContract.lessor.address,
+                    RRN : parseContract.lessor.RRN,
+                    name : parseContract.lessor.name,
+                    telephoneNum : parseContract.lessor.telephoneNum
+                },
+                lessee : {
+                    address : parseContract.lessee.address,
+                    RRN : parseContract.lessee.RRN,
+                    name : parseContract.lessee.name,
+                    telephoneNum : parseContract.lessee.telephoneNum
+                },
+                realtor : {
+                    address: parseContract.realtor.address,
+                    officeName: parseContract.realtor.officeName,
+                    name: parseContract.realtor.name,
+                    registrationNum: parseContract.realtor.registrationNum,
+                    telephoneNum: parseContract.realtor.telephoneNum
+                },
+                attachments : req.body.files,
             }
-            const files = new Array()
+        }
 
-            for (const file of req.files) {
-                const result = await ipfs.add({
-                    name : file.originalname,
-                    path : file.path,
-                    savePath : `contract/${req.body.trustToken}`
-                })
-
-                files.push(result)
-            }
-
-            req.body.files = files
-
-            const token = await jsonToHash(req.body)
-            req.body.token = token
-
-            const Contract = await wallet('contract')
-
-            const contractRequest = {
-                gateway : Contract.gateway,
-                contract : {
-                    token : req.body.token,
-                    preToken : req.body.preToken,
-                    locatino : req.body.location,
-                    landCategory : req.body.landCategory,
-                    landArea : req.body.landArea,
-                    buildingPurpose : req.body.buildingPurpose,
-                    buildingArea : req.body.buildingArea,
-                    partOfLeese : req.body.partOfLeese,
-                    partOfLeeseArea : req.body.partOfLeeseArea,
-                    rentType : req.body.rentType,
-                    periodStart : req.body.periodStart,
-                    periodEnd : req.body.periodEnd,
-                    securityDeposit : req.body.securityDeposit,
-                    contractPrice : req.body.contractPrice,
-                    interimPrice : req.body.interimPrice,
-                    balance : req.body.balance,
-                    rent : req.body.rent,
-                    specialAgreement : req.body.specialAgreement,
-                    lessor : {
-                        address : req.body.lessor.address,
-                        RRN : req.body.lessor.RRN,
-                        name : req.body.lessor.name,
-                        telephoneNum : req.body.lessor.telephoneNum
-                    },
-                    lessee : {
-                        address : req.body.lessee.address,
-                        RRN : req.body.lessee.RRN,
-                        name : req.body.lessee.name,
-                        telephoneNum : req.body.lessee.telephoneNum
-                    },
-                    realtor : {
-                        address: req.body.realtor.address,
-                        officeName: req.body.realtor.officeName,
-                        name: req.body.realtor.name,
-                        registrationNum: req.body.realtor.registrationNum,
-                        telephoneNum: req.body.realtor.telephoneNum
-                    },
-                    attachments : req.body.files,
-                }
-            }
-
-            let result = await contractTx.updateContract(contractRequest)
+        let result = await contractTx.updateContract(contractRequest)
+        
+        if (!result) {
+            res.status(500).json({error : 'Internal error please try again'})
+        } else {
+            const Trust = await wallet('trust')
             
-            if (!result) {
-                res.status(500).json({error : 'Internal error please try again'})
-            } else {
-                const Trust = await wallet('trust')
-                
-                const trustRequest = {
-                    contract : Trust.contract,
-                    trustToken : req.body.trustToken,
-                    contractToken : token
-                }
-
-                result = await trustTx.setContract(trustRequest)
-
-                if(result) {
-                    res.status(200).json({message : 'Contract Update Success'})
-                } else {
-                    res.status(500).json({error : 'Internal error please try again'})
-                }
+            const trustRequest = {
+                contract : Trust.contract,
+                trustToken : req.body.trustToken,
+                contractToken : token
             }
-        })
+
+            result = await trustTx.setContract(trustRequest)
+
+            if(result) {
+                res.status(200).json({message : 'Contract Update Success'})
+            } else {
+                res.status(500).json({error : 'Internal error please try again'})
+            }
+        }
     })
 
 // Contract Delete

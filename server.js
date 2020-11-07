@@ -27,8 +27,7 @@ app.use(session({
 
 app.use(cors({
     origin: true,
-    credentials: true,
-    methods: 'GET, POST',
+    credentials: true
 }))
 app.use(express.static('pubilc'))
 

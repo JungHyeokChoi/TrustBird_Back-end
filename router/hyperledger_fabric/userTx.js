@@ -11,7 +11,7 @@ const userTx = {
                 request.dateOfBirth,
                 request.gender,
                 request.telephoneNum,
-                request.permisson,
+                request.permission,
                 request.membership,
                 request.balance
             )
@@ -35,7 +35,7 @@ const userTx = {
                 request.dateOfBirth,
                 request.gender,
                 request.telephoneNum,
-                request.permisson,
+                request.permission,
                 request.membership,
                 request.balance
             )
@@ -81,6 +81,32 @@ const userTx = {
             return {
                 result : true,
                 user : JSON.parse(result)
+            }
+            
+        } catch(error) {
+            console.log(error)
+
+            return {
+                result : false,
+                error : error
+            }
+        }
+    },
+
+    readAllUser : async(request) => {
+        try {
+            const result = await request.contract.createTransaction("readAllUser")
+            .evaluate()
+
+            if (result.length == 0) {
+                return { 
+                    result : true 
+                }  
+            } 
+
+            return { 
+                result : true,
+                users : JSON.parse(result)
             }
             
         } catch(error) {

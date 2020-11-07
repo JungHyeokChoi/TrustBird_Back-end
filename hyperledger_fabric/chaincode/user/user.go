@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"reflect"
@@ -16,7 +17,7 @@ type User struct {
 	Username string `json:"username"`
 	Email string `json:"email"`
 	Password string `json:"password"`
-	DateOfBirth string `json:"dateofBirth"`
+	DateOfBirth string `json:"dateOfBirth"`
 	Gender string `json:"gender"`
 	TelephoneNum string `json:"telephoneNum"`
 	Permission string `json:"permission"`
@@ -41,6 +42,8 @@ func (s *SmartContract) Invoke(APIstub shim.ChaincodeStubInterface) sc.Response 
 		return s.removeUser(APIstub, args)
 	} else if function == "readUser" {
 		return s.readUser(APIstub, args)
+	} else if function == "readAllUser" {
+		return s.readAllUser(APIstub)
 	} else if function == "addAttribute" {
 		return s.addAttribute(APIstub, args)
 	} else if function == "updateAttribute" {
@@ -54,7 +57,7 @@ func (s *SmartContract) Invoke(APIstub shim.ChaincodeStubInterface) sc.Response 
 	return shim.Error("Invalid Smart Contract function name.")
 }
 
-func  (s *SmartContract) addUser(APIstub shim.ChaincodeStubInterface, args []string) sc.Response {
+func (s *SmartContract) addUser(APIstub shim.ChaincodeStubInterface, args []string) sc.Response {
 	if len(args) != 9 {
 		return shim.Error("fail!")
 	}
@@ -76,7 +79,7 @@ func  (s *SmartContract) addUser(APIstub shim.ChaincodeStubInterface, args []str
 	return shim.Success(nil)
 }
 
-func  (s *SmartContract) updateUser(APIstub shim.ChaincodeStubInterface, args []string) sc.Response {
+func (s *SmartContract) updateUser(APIstub shim.ChaincodeStubInterface, args []string) sc.Response {
 	if len(args) != 9 {
 		return shim.Error("fail!")
 	}
@@ -106,7 +109,7 @@ func  (s *SmartContract) updateUser(APIstub shim.ChaincodeStubInterface, args []
 	return shim.Success(nil)
 }
 
-func  (s *SmartContract) removeUser(APIstub shim.ChaincodeStubInterface, args []string) sc.Response {
+func (s *SmartContract) removeUser(APIstub shim.ChaincodeStubInterface, args []string) sc.Response {
 	if len(args) != 1 {
 		return shim.Error("fail!")
 	}
@@ -120,7 +123,7 @@ func  (s *SmartContract) removeUser(APIstub shim.ChaincodeStubInterface, args []
 	return shim.Success(nil)
 }
 
-func  (s *SmartContract) readUser(APIstub shim.ChaincodeStubInterface, args []string) sc.Response {
+func (s *SmartContract) readUser(APIstub shim.ChaincodeStubInterface, args []string) sc.Response {
 	if len(args) != 1 {
 		return shim.Error("fail!")
 	}
@@ -128,6 +131,36 @@ func  (s *SmartContract) readUser(APIstub shim.ChaincodeStubInterface, args []st
 	userAsBytes, _ := APIstub.GetState(args[0])
 	
 	return shim.Success(userAsBytes)
+}
+
+func (s *SmartContract) readAllUser(APIstub shim.ChaincodeStubInterface) sc.Response {
+	startKey := ""
+	endKey := ""
+
+	resultsIterator, err := APIstub.GetStateByRange(startKey, endKey)
+	if err != nil {
+		return shim.Error(err.Error())
+	}
+	defer resultsIterator.Close()
+
+	var buffer bytes.Buffer
+	buffer.WriteString("[")
+
+	bArrayMemberAlreadyWritten := false
+	for resultsIterator.HasNext() {
+		queryResponse, err := resultsIterator.Next()
+		if err != nil {
+			return shim.Error(err.Error())
+		}
+		if bArrayMemberAlreadyWritten == true {
+			buffer.WriteString(",")
+		}
+		buffer.WriteString(string(queryResponse.Value))
+		bArrayMemberAlreadyWritten = true
+	}
+	buffer.WriteString("]")
+
+	return shim.Success(buffer.Bytes())
 }
 
 func (s *SmartContract) addAttribute(APIstub shim.ChaincodeStubInterface, args []string) sc.Response {

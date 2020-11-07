@@ -13,163 +13,152 @@ const authenticate = require('./passport/authenticate')
 
 // Trust Subscription
 router.route('/subscription')
-    .post(authenticate.user, (req, res) => {
-        upload.array('attachments')(req, res, async(err) => {
-            console.log('Trust Subscription...')
+    .post(authenticate.user, upload.array('attachments'), async(req, res) => {
+        console.log('Trust Subscription...')
 
-            if(err) {
-                console.log(err)
-                res.status(500).json({error : 'Internal error please try again'})
+        const email = req.user.permission === 'user' ? req.user.email : req.body.email
+
+        const files = new Array()
+
+
+        for (const file of req.files) {
+            const result = await ipfs.add({
+                name : file.originalname,
+                path : file.path,
+                savePath : `trust/${email}`
+            })
+
+            files.push(result)
+        }
+
+        req.body.files = files
+
+        const token = await jsonToHash(req.body)
+
+        req.body.token = token
+
+        const Trust = await wallet('trust')
+
+        const trustRequest = {
+            gateway : Trust.gateway,
+            trust : {
+                token : req.body.token,
+                preToken : req.body.preToken,
+                username : req.body.username,
+                telephoneNum : req.body.telephoneNum,
+                realtorName : req.body.realtorName,
+                realtorTelephoneNum : req.body.realtorTelephoneNum,
+                realtorCellphoneNum : req.body.realtorCellphoneNum,
+                type : req.body.type,
+                securityDeposit : req.body.securityDeposit,
+                rent : req.body.rent,
+                purpose : req.body.purpose,
+                periodStart : req.body.periodStart,
+                periodEnd : req.body.periodEnd,
+                etc : req.body.etc,
+                status : req.body.status,
+                contract : req.body.contract,
+                attachments : req.body.files
             }
-            const email = req.user.permission === 'user' ? req.user.email : req.body.email
+        }
 
-            const files = new Array()
+        let result = await trustTx.addTrust(trustRequest)
+        
+        if (!result) {
+            res.status(500).json({error : 'Internal error please try again'})
+        } else {
+            const User = await wallet('user')
 
-            for (const file of req.files) {
-                const result = await ipfs.add({
-                    name : file.originalname,
-                    path : file.path,
-                    savePath : `trust/${email}`
-                })
-
-                files.push(result)
+            const userRequest = {
+                contract : User.contract,
+                email : email,
+                targetAttr : 'Trust',
+                value : token
             }
+            result = await userTx.addAttribute(userRequest)
 
-            req.body.files = files
-
-            const token = await jsonToHash(req.body)
-
-            req.body.token = token
-
-            const Trust = await wallet('trust')
-
-            const trustRequest = {
-                gateway : Trust.gateway,
-                trust : {
-                    token : req.body.token,
-                    preToken : req.body.preToken,
-                    username : req.body.username,
-                    telephoneNum : req.body.telephoneNum,
-                    realtorName : req.body.realtorName,
-                    realtorTelephoneNum : req.body.realtorTelephoneNum,
-                    realtorCellphoneNum : req.body.realtorCellphoneNum,
-                    type : req.body.type,
-                    securityDeposit : req.body.securityDeposit,
-                    rent : req.body.rent,
-                    purpose : req.body.purpose,
-                    periodStart : req.body.peiriodStart,
-                    periodEnd : req.body.periodEnd,
-                    etc : req.body.etc,
-                    status : req.body.status,
-                    contract : req.body.contract,
-                    attachments : req.body.files
-                }
-            }
-
-            let result = await trustTx.addTrust(trustRequest)
-            
-            if (!result) {
-                res.status(500).json({error : 'Internal error please try again'})
+            if(result) {
+                res.status(200).json({message : 'Trust Subscription Success'})
             } else {
-                const User = await wallet('user')
-
-                const userRequest = {
-                    contract : User.contract,
-                    email : email,
-                    targetAttr : 'Trust',
-                    value : token
-                }
-                result = await userTx.addAttribute(userRequest)
-
-                if(result) {
-                    res.status(200).json({message : 'Trust Subscription Success'})
-                } else {
-                    res.status(500).json({error : 'Internal error please try again'})
-                }
+                res.status(500).json({error : 'Internal error please try again'})
             }
-        })
+        }
     })
     
 // Trust Upload
 router.route('/update')
-    .post(authenticate.user, (req, res) => {
-        upload.array('attachments')(req, res, async(err) => {
-            console.log('Trust Upload...')
+    .post(authenticate.user,  upload.array('attachments'), async(req, res) => {
+        console.log('Trust Upload...')
 
-            if(err) {
-                console.log(err)
-                res.status(500).json({error : 'Internal error please try again'})
+        const email = req.user.permission === 'user' ? req.user.email : req.body.email
+
+        const files = new Array()
+        
+        for (const file of req.files) {
+            const result = await ipfs.add({
+                name : file.originalname,
+                path : file.path,
+                savePath : `trust/${email}`
+            })
+
+            files.push(result)
+        }
+
+        req.body.files = files
+
+        const token = await jsonToHash(req.body)
+
+        req.body.token = token
+
+        const Trust = await wallet('Trust')
+
+        const trustRequest = {
+            gateway : Trust.gateway,
+            trust : {
+                token : req.body.token,
+                preToken : req.body.preToken,
+                username : req.body.username,
+                telephoneNum : req.body.telephoneNum,
+                realtorName : req.body.realtorName,
+                realtorTelephoneNum : req.body.realtorTelephoneNum,
+                realtorCellphoneNum : req.body.realtorCellphoneNum,
+                type : req.body.type,
+                securityDeposit : req.body.securityDeposit,
+                rent : req.body.rent,
+                purpose : req.body.purpose,
+                periodStart : req.body.periodStart,
+                periodEnd : req.body.periodEnd,
+                etc : req.body.etc,
+                status : req.body.status,
+                contract : req.body.contract,
+                attachments : req.body.files
             }
-            const email = req.user.permission === 'user' ? req.user.email : req.body.email
+        }
 
-            const files = new Array()
-            
-            for (const file of req.files) {
-                const result = await ipfs.add({
-                    name : file.originalname,
-                    path : file.path,
-                    savePath : `trust/${email}`
-                })
+        let { result, error } = await trustTx.updateTrust(trustRequest)
+        
+        if (!result) {
+            console.log(error)
+            res.status(500).json({error : 'Internal error please try again'})
+        } else {
+            const User = await wallet('user')
 
-                files.push(result)
+            const userRequest = {
+                contract : User.contract,
+                email : email,
+                targetAttr : 'Trust',
+                preValue : req.body.preToken,
+                newValue : token
             }
 
-            req.body.files = files
+            result = await userTx.updateAttribute(userRequest)
 
-            const token = await jsonToHash(req.body)
-
-            req.body.token = token
-
-            const Trust = await wallet('Trust')
-
-            const trustRequest = {
-                gateway : Trust.gateway,
-                trust : {
-                    token : req.body.token,
-                    preToken : req.body.preToken,
-                    username : req.body.username,
-                    telephoneNum : req.body.telephoneNum,
-                    realtorName : req.body.realtorName,
-                    realtorTelephoneNum : req.body.realtorTelephoneNum,
-                    realtorCellphoneNum : req.body.realtorCellphoneNum,
-                    type : req.body.type,
-                    securityDeposit : req.body.securityDeposit,
-                    rent : req.body.rent,
-                    purpose : req.body.purpose,
-                    periodStart : req.body.peiriodStart,
-                    periodEnd : req.body.periodEnd,
-                    etc : req.body.etc,
-                    status : req.body.status,
-                    contract : req.body.contract,
-                    attachments : req.body.files
-                }
-            }
-
-            let { result, error } = await trustTx.updateTrust(trustRequest)
-            
-            if (!result) {
-                console.log(error)
-                res.status(500).json({error : 'Internal error please try again'})
+            if(result) {
+                res.status(200).json({message : 'Trust Update Success'})
             } else {
-                const User = await wallet('user')
-
-                const userRequest = {
-                    contract : User.contract,
-                    email : email,
-                    targetAttr : 'Trust',
-                    preValue : req.body.preToken,
-                    newValue : token
-                }
-
-                result = await userTx.updateAttribute(userRequest)
-
-                if(result) {
-                    res.status(200).json({message : 'Trust Update Success'})
-                } else {
-                    res.status(500).json({error : 'Internal error please try again'})
-                }
+                res.status(500).json({error : 'Internal error please try again'})
             }
-        })
+        }
     })
 
 // Trust Delete

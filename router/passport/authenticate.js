@@ -12,8 +12,8 @@ const passport = require('passport')
 const admin = (req, res, next) => {
     verifyToken(req, res, next)
 
-    if(user){
-        if(user.permission !== 'user') {
+    if(req.user){
+        if(req.user.permission !== 'user') {
             next()
         } else {
             res.status(401).json({message : 'Invaild Authority'})
@@ -26,7 +26,7 @@ const admin = (req, res, next) => {
 const user = (req, res, next) => {
     verifyToken(req, res, next)
 
-    if(user){
+    if(req.user){
         next()
     } else {
         res.status(401).json({message : 'You are not sign in. please using after sign in'})

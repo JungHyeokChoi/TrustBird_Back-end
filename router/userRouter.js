@@ -40,9 +40,9 @@ router.route('/signup')
                 dateOfBirth : req.body.dateOfBirth,
                 gender : req.body.gender,
                 telephoneNum : req.body.telephoneNum,
-                permisson : req.body.permission,
-                membership : '0',
-                balance : '0'
+                permission : req.body.permission,
+                membership : req.body.membership,
+                balance : req.body.balance
             }
     
             const result = await userTx.addUser(request)
@@ -78,7 +78,7 @@ router.route('/signin')
                 const token = jwt.sign({
                     username : user.username,
                     email: user.email,
-                    permission : user.permission
+                    permission : user.permission,
                 }, SECRET_KEY, {
                     expiresIn: '1h'
                 });
@@ -127,11 +127,13 @@ router.route('/modified')
                 dateOfBirth : req.body.dateOfBirth,
                 gender : req.body.gender,
                 telephoneNum : req.body.telephoneNum,
-                permisson : req.body.permission,
-                membership : req.body.membership,
-                balance : req.body.balance
+                permission : req.body.permission,
+                membership : req.body.membership,response,
+                balance : req.body.balance,
+                trust : req.body.trust,
+                maintenanceFee : req.body.maintenanceFee
             }
-    
+
             const result = await userTx.updateUser(request)
     
             if (result) {
@@ -166,6 +168,42 @@ router.route('/find')
             res.status(401).json({message : 'This user not exist'})
         } else {
             res.status(200).json(response.user)
+        }
+    })
+
+// User List
+router.route('/list')
+    .get(authenticate.admin, async(req, res) => {
+        console.log('User List...')
+
+        const User = await wallet('user')
+
+        const request = {
+            contract : User.contract
+        }
+
+        const response = await userTx.readAllUser(request)
+
+        if (!response.result) {
+            console.log(response.error)
+            res.status(500).json({error : 'Internal error please try again'})
+        } else if(response.users === undefined) { 
+            res.status(401).json({message : 'This user not exist'})
+        } else {
+            const projection = {
+                username : 1,
+                email : 1,
+                dateOfBirth : 1,
+                gender : 1,
+                telephoneNum : 1,
+                permission : 1
+            }
+
+            for (let user of response.users) {
+                await selectProperties(user, projection)
+            }
+            
+            res.status(200).json(response.users)
         }
     })
 
@@ -291,7 +329,7 @@ router.route('/attribute')
         }
     })
 
-    .post(authenticate.admin, async(req, res) => {
+    .post(authenticate.user, async(req, res) => {
         console.log('User Update Target attribute...')
 
         const User = await wallet('user')
@@ -367,6 +405,8 @@ router.route('/trustlist')
         } else if(userResponse.value === undefined) { 
             res.status(401).json({message : 'This user not exist'})
         } else {
+            let no = 1
+
             const trusts = new Array()
 
             for(let token of userResponse.value) {
@@ -396,9 +436,12 @@ router.route('/trustlist')
                     }
                     await selectProperties(trustResponse.trust, projection)
 
+                    trustResponse.trust.no = no++
+
                     trusts.push(trustResponse.trust)
                 }
             }
+
             res.status(200).json(trusts)
         }
     })
@@ -426,9 +469,11 @@ router.route('/maintenancefeelist')
         } else if(userResponse.value === undefined) { 
             res.status(401).json({message : 'This user not exist'})
         } else {
+            let no = 1
+
             const maintenanceFees = new Array()
 
-            for(let electronicPaymentNum of response.maintenanceFee) {
+            for(let electronicPaymentNum of userResponse.value) {
                 const MaintenanceFee = await wallet('maintenanceFee')
 
                 const maintenanceFeeRequest = {
@@ -436,13 +481,13 @@ router.route('/maintenancefeelist')
                     electronicPaymentNum : electronicPaymentNum
                 }
 
-                const maintenanceFeeResponse = await maintenanceFeeTx.readTrust(maintenanceFeeRequest)
+                const maintenanceFeeResponse = await maintenanceFeeTx.readMaintenanceFee(maintenanceFeeRequest)
 
                 if (!maintenanceFeeResponse.result) {
                     console.log(maintenanceFeeResponse.error)
                     res.status(500).json({error : 'Internal error please try again'})
                 } else if(maintenanceFeeResponse.maintenanceFee === undefined) { 
-                    res.status(401).json({message : 'This maintenanceFee not exist'})
+                    console.log('This maintenanceFee not exist')
                 } else {
                     const projection = {
                         claimingAgency : 1,
@@ -452,21 +497,19 @@ router.route('/maintenancefeelist')
                     }
                     await selectProperties(maintenanceFeeResponse.maintenanceFee, projection)
 
+                    maintenanceFeeResponse.maintenanceFee.no = no.toString()
+                    no++
+
                     maintenanceFees.push(maintenanceFeeResponse.maintenanceFee)
                 }
             }
+        
             res.status(200).json(maintenanceFees)
         }
     })
 
 router.route('/infomation')
     .get(authenticate.user, (req, res) => {
-        // console.log(req.user)
-        // if(req.user === undefined) {
-        //     res.status(401).json({message : 'Please login'})
-        // } else {
-        //     res.status(200).json({user : req.user})
-        // }
         res.status(200).json({user : req.user})
     })
 
