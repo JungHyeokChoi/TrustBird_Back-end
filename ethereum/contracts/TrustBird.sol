@@ -1,8 +1,9 @@
 pragma solidity ^0.5.0;
+pragma experimental ABIEncoderV2;
 
 contract TrustBird {
-    mapping(string => bytes32[]) private hashValueOfTrust;
-    mapping(bytes32 => bytes32) private hashValueOfContract;
+    mapping(string => string[]) private hashValueOfTrust;
+    mapping(string => string) private hashValueOfContract;
     
     address private owner;
     
@@ -16,11 +17,11 @@ contract TrustBird {
         maxValue = 65535;
     }
 
-    function getHashValueOfTrust(string memory email) public view returns(bytes32[] memory) {
+    function getHashValueOfTrust(string memory email) public view returns(string[] memory) {
         return hashValueOfTrust[email];
     }
     
-    function addHashValueOfTrust(string memory email, bytes32 token, uint16 index) public {
+    function addHashValueOfTrust(string memory email, string memory token, uint16 index) public {
         require(msg.sender == owner, "Wrong approach");
         
         totalTrust++;
@@ -38,11 +39,11 @@ contract TrustBird {
         delete hashValueOfTrust[email][index];
     }
     
-    function getHashValueOfContract(bytes32 token) public view returns(bytes32) {
+    function getHashValueOfContract(string memory token) public view returns(string memory) {
         return hashValueOfContract[token];
     }
 
-    function addHashValueOfContract(bytes32 trustToken, bytes32 contractToken) public {
+    function addHashValueOfContract(string memory trustToken, string memory contractToken) public {
         require(msg.sender == owner, "Wrong approach");
         
         totalContract++;
@@ -50,7 +51,7 @@ contract TrustBird {
         hashValueOfContract[trustToken] = contractToken;
     }
     
-    function removeHashValueOfContract(bytes32 token) public {
+    function removeHashValueOfContract(string memory trustToken) public {
         require(msg.sender == owner, "Wrong approach");
         
         totalContract--;
