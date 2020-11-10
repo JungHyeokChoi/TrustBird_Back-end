@@ -5,10 +5,10 @@ const maintenanceFeeTx = {
         try {
             await request.contract.createTransaction('addMaintenanceFee')
             .submit(
+                request.email,
                 request.claimingAgency,
                 request.electronicPaymentNum,
                 request.dueDate,
-                request.deadline,
                 request.amountDue,
                 request.amountDeadline,
                 request.payment,
@@ -34,10 +34,10 @@ const maintenanceFeeTx = {
         try {
             await request.contract.createTransaction('updateMaintenanceFee')
             .submit(
+                request.email,
                 request.claimingAgency,
                 request.electronicPaymentNum,
                 request.dueDate,
-                request.deadline,
                 request.amountDue,
                 request.amountDeadline,
                 request.payment,

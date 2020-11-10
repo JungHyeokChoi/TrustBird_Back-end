@@ -90,7 +90,7 @@ router.route('/signin')
 
 // User SignOut
 router.route('/signout')
-    .get((req, res) => {
+    .get((req, res) => {    
         console.log('User SignOut...')
 
         req.logout()
@@ -188,8 +188,10 @@ router.route('/list')
             console.log(response.error)
             res.status(500).json({error : 'Internal error please try again'})
         } else if(response.users === undefined) { 
-            res.status(401).json({message : 'This user not exist'})
+            console.log('This user not exist')
         } else {
+            let no = 1
+
             const projection = {
                 username : 1,
                 email : 1,
@@ -201,6 +203,8 @@ router.route('/list')
 
             for (let user of response.users) {
                 await selectProperties(user, projection)
+
+                user.no = no++
             }
             
             res.status(200).json(response.users)
@@ -319,6 +323,7 @@ router.route('/attribute')
 
         const response  = await userTx.readAttribute(request)
 
+        console.log(response.value)
         if (!response.result) {
             console.log(response.error)
             res.status(500).json({error : 'Internal error please try again'})
@@ -332,12 +337,14 @@ router.route('/attribute')
     .post(authenticate.user, async(req, res) => {
         console.log('User Update Target attribute...')
 
+        const email = req.user.permission === 'user' ? req.user.email : req.body.email
+
         const User = await wallet('user')
 
         if (req.body.invoke === 'add') {
             const request = {
                 contract : User.contract,
-                email : req.body.email,
+                email : email,
                 targetAttr : req.body.targetAttr,
                 value : req.body.value
             }
@@ -351,7 +358,7 @@ router.route('/attribute')
         } else if (req.body.invoke === 'update') {
             const request = {
                 contract : User.contract,
-                email : req.body.email,
+                email : email,
                 targetAttr : req.body.targetAttr,
                 preValue : req.body.preValue,
                 newValue : req.body.newValue
@@ -366,7 +373,7 @@ router.route('/attribute')
         } else if (req.body.invoke === 'remove') {
             const request = {
                 contract : User.contract,
-                email : req.body.email,
+                email : email,
                 targetAttr : req.body.targetAttr,
                 value : req.body.value
             }
@@ -423,7 +430,7 @@ router.route('/trustlist')
                     console.log(trustResponse.error)
                     res.status(500).json({error : 'Internal error please try again'})
                 } else if(trustResponse.trust === undefined) { 
-                    res.status(401).json({message : 'This trust not exist'})
+                    console.log('This trust not exist')
                 } else {
                     const projection = {
                         token : 1,
@@ -441,7 +448,6 @@ router.route('/trustlist')
                     trusts.push(trustResponse.trust)
                 }
             }
-
             res.status(200).json(trusts)
         }
     })
@@ -497,13 +503,11 @@ router.route('/maintenancefeelist')
                     }
                     await selectProperties(maintenanceFeeResponse.maintenanceFee, projection)
 
-                    maintenanceFeeResponse.maintenanceFee.no = no.toString()
-                    no++
+                    maintenanceFeeResponse.maintenanceFee.no = no++
 
                     maintenanceFees.push(maintenanceFeeResponse.maintenanceFee)
                 }
             }
-        
             res.status(200).json(maintenanceFees)
         }
     })

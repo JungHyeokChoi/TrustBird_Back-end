@@ -13,6 +13,7 @@ type SmartContract struct {
 }
 
 type Contract struct {
+	TrustToken string `json:"trustToken"`
 	Token string `json:"token"`
 	PreToken string `json:"preToken"`
 	Location string `json:"location"`
@@ -20,8 +21,8 @@ type Contract struct {
 	LandArea string `json:"landArea"`
 	BuildingPurpose string `json:"buildingPurpose"`
 	BuildingArea string `json:"buildingArea"`
-	PartOfLeese string `json:"partOfLeese"`
-	PartOfLeeseArea string `json:"partOfLeeseArea"`
+	PartOfLease string `json:"partOfLease"`
+	PartOfLeaseArea string `json:"partOfLeaseArea"`
 	RentType string `json:"rentType"`
 	PeriodStart string `json:"periodStart"`
 	Periodend string `json:"periodEnd"`
@@ -87,50 +88,51 @@ func (s *SmartContract) Invoke(APIstub shim.ChaincodeStubInterface) sc.Response 
 }
 
 func  (s *SmartContract) addContract(APIstub shim.ChaincodeStubInterface, args []string) sc.Response {
-	if len(args) < 31 {
+	if len(args) < 32 {
 		return shim.Error("fail!")
 	}
 
 	var contract = Contract{
-		Token : args[0],
-		PreToken : args[1],
-		Location : args[2],
-		LandCategory : args[3],
-		LandArea : args[4],
-		BuildingPurpose : args[5],
-		BuildingArea : args[6],
-		PartOfLeese : args[7],
-		PartOfLeeseArea : args[8],
-		RentType : args[9],
-		PeriodStart : args[10],
-		Periodend : args[11],
-		SecurityDeposit : args[12],
-		ContractPrice : args[13],
-		InterimPrice : args[14],
-		Balance : args[15],
-		Rent : args[16],
-		SpecialAgreement : args[17],
+		TrustToken : args[0],
+		Token : args[1],
+		PreToken : args[2],
+		Location : args[3],
+		LandCategory : args[4],
+		LandArea : args[5],
+		BuildingPurpose : args[6],
+		BuildingArea : args[7],
+		PartOfLease : args[8],
+		PartOfLeaseArea : args[9],
+		RentType : args[10],
+		PeriodStart : args[11],
+		Periodend : args[12],
+		SecurityDeposit : args[13],
+		ContractPrice : args[14],
+		InterimPrice : args[15],
+		Balance : args[16],
+		Rent : args[17],
+		SpecialAgreement : args[18],
 		Lessor : Lessor{
-			Address : args[18],
-			RRN : args[19],
-			Name : args[20],
-			TelephoneNum : args[21]},
+			Address : args[19],
+			RRN : args[20],
+			Name : args[21],
+			TelephoneNum : args[22]},
 		Lessee : Lessee{
-			Address : args[22],
-			RRN : args[23],
-			Name : args[24],
-			TelephoneNum : args[25]},
+			Address : args[23],
+			RRN : args[24],
+			Name : args[25],
+			TelephoneNum : args[26]},
 		Realtor : Realtor{
-			Address : args[26],
-			OfficeName : args[27],
-			Name : args[28],
-			RegistrationNum : args[29],
-			TelephoneNum : args[30]},
+			Address : args[27],
+			OfficeName : args[28],
+			Name : args[29],
+			RegistrationNum : args[30],
+			TelephoneNum : args[31]},
 		Attachments : []Attachment{}}
 	
 	var Attachment = Attachment{}
 
-	for i := 31; i < len(args); i+=2 {
+	for i := 32; i < len(args); i+=2 {
 		Attachment.Filename = args[i]
 		Attachment.FilePath = args[i + 1]
 
@@ -138,17 +140,17 @@ func  (s *SmartContract) addContract(APIstub shim.ChaincodeStubInterface, args [
 	}
 
 	contractAsBytes, _ := json.Marshal(contract)
-	APIstub.PutState(args[0], contractAsBytes)
+	APIstub.PutState(args[1], contractAsBytes)
 
 	return shim.Success(nil)
 }
 
 func  (s *SmartContract) updateContract(APIstub shim.ChaincodeStubInterface, args []string) sc.Response {
-	if len(args) < 31 {
+	if len(args) < 32 {
 		return shim.Error("fail!")
 	}
 
-	contractAsBytes, _ := APIstub.GetState(args[1])
+	contractAsBytes, _ := APIstub.GetState(args[2])
 	if(contractAsBytes == nil) {
 		return shim.Error("This contract is not exist. Update fail")
 	}
@@ -157,51 +159,52 @@ func  (s *SmartContract) updateContract(APIstub shim.ChaincodeStubInterface, arg
 
 	json.Unmarshal(contractAsBytes, &contract)
 	
-	err := APIstub.DelState(args[1])
+	err := APIstub.DelState(args[2])
 	if err != nil {
 		return shim.Error("Fail Update")
 	}
 
 	contract = Contract{
-		Token : args[0],
-		PreToken : args[1],
-		Location : args[2],
-		LandCategory : args[3],
-		LandArea : args[4],
-		BuildingPurpose : args[5],
-		BuildingArea : args[6],
-		PartOfLeese : args[7],
-		PartOfLeeseArea : args[8],
-		RentType : args[9],
-		PeriodStart : args[10],
-		Periodend : args[11],
-		SecurityDeposit : args[12],
-		ContractPrice : args[13],
-		InterimPrice : args[14],
-		Balance : args[15],
-		Rent : args[16],
-		SpecialAgreement : args[17],
+		TrustToken : args[0],
+		Token : args[1],
+		PreToken : args[2],
+		Location : args[3],
+		LandCategory : args[4],
+		LandArea : args[5],
+		BuildingPurpose : args[6],
+		BuildingArea : args[7],
+		PartOfLease : args[8],
+		PartOfLeaseArea : args[9],
+		RentType : args[10],
+		PeriodStart : args[11],
+		Periodend : args[12],
+		SecurityDeposit : args[13],
+		ContractPrice : args[14],
+		InterimPrice : args[15],
+		Balance : args[16],
+		Rent : args[17],
+		SpecialAgreement : args[18],
 		Lessor : Lessor{
-			Address : args[18],
-			RRN : args[19],
-			Name : args[20],
-			TelephoneNum : args[21]},
+			Address : args[19],
+			RRN : args[20],
+			Name : args[21],
+			TelephoneNum : args[22]},
 		Lessee : Lessee{
-			Address : args[22],
-			RRN : args[23],
-			Name : args[24],
-			TelephoneNum : args[25]},
+			Address : args[23],
+			RRN : args[24],
+			Name : args[25],
+			TelephoneNum : args[26]},
 		Realtor : Realtor{
-			Address : args[26],
-			OfficeName : args[27],
-			Name : args[28],
-			RegistrationNum : args[29],
-			TelephoneNum : args[30]},
+			Address : args[27],
+			OfficeName : args[28],
+			Name : args[29],
+			RegistrationNum : args[30],
+			TelephoneNum : args[31]},
 		Attachments : []Attachment{}}
 			
 	var Attachment = Attachment{}
 
-	for i := 31; i < len(args); i+=2 {
+	for i := 32; i < len(args); i+=2 {
 		Attachment.Filename = args[i]
 		Attachment.FilePath = args[i + 1]
 
@@ -209,7 +212,7 @@ func  (s *SmartContract) updateContract(APIstub shim.ChaincodeStubInterface, arg
 	}
 
 	contractAsBytes, _ = json.Marshal(contract)
-	APIstub.PutState(args[0], contractAsBytes)
+	APIstub.PutState(args[1], contractAsBytes)
 
 	return shim.Success(nil)
 }

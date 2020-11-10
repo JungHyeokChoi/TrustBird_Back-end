@@ -272,6 +272,8 @@ router.route('/list')
         } else if(response.trusts === undefined) { 
             res.status(401).json({message : 'This trust not exist'})
         } else {
+            let no = 1
+
             const projection = {
                 preToken : 0,
                 telephoneNum : 0,
@@ -283,11 +285,35 @@ router.route('/list')
                 attachments : 0
             }
 
+            console.log(response.trusts)
+            const trusts = new Array()
             for (let trust of response.trusts) {
                 await selectProperties(trust, projection)
+
+                trust.no =  no++
+
+                switch(req.user.permission) {
+                    case "legalTL" : 
+                        if(trust.status === "신탁 요청"){
+                            trusts.push(trust)
+                        }
+                        break
+                    case "maintenanceTL" : 
+                        if(trust.status === "법무팀 승인"){
+                            trusts.push(trust)
+                        }
+                        break
+                    case "accountingTL" : 
+                        if(trust.status === "계약금 입금 대기"){
+                            trusts.push(trust)
+                        }
+                        break
+                    default : 
+                        trusts.push(trust)
+                }
             }
-            
-            res.status(200).json(response.trusts)
+
+            res.status(200).json(trusts)
         }
     })
 
@@ -315,7 +341,7 @@ router.route('/status')
         }
     })
 
-    .post(authenticate.admin, async(req, res) => {
+    .post(authenticate.user, async(req, res) => {
         console.log('Trsut Status Change...')
 
         const Trust = await wallet('trust')

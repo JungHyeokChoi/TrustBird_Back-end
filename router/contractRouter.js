@@ -33,10 +33,13 @@ router.route('/enroll')
 
         const parseContract = JSON.parse(req.body.contract)
         
+        const token =  await jsonToHash(req.body)
+
         const contractRequest = {
             gateway : Contract.gateway,
             contract : {
-                token : await jsonToHash(req.body),
+                trustToken : req.body.trustToken,
+                token : token,
                 preToken : parseContract.preToken,
                 locatino : parseContract.location,
                 landCategory : parseContract.landCategory,
@@ -86,7 +89,7 @@ router.route('/enroll')
             
             const trustRequest = {
                 contract : Trust.contract,
-                trustToken : req.body.trustToken,
+                trustToken : parseContract.trustToken,
                 contractToken : token
             }
 
@@ -123,10 +126,13 @@ router.route('/update')
 
         const parseContract = JSON.parse(req.body.contract)
 
+        const token =  await jsonToHash(req.body)
+
         const contractRequest = {
             gateway : Contract.gateway,
             contract : {
-                token : await jsonToHash(req.body),
+                trustToken : req.body.trustToken,
+                token : token,
                 preToken : parseContract.preToken,
                 locatino : parseContract.location,
                 landCategory : parseContract.landCategory,
@@ -176,7 +182,7 @@ router.route('/update')
             
             const trustRequest = {
                 contract : Trust.contract,
-                trustToken : req.body.trustToken,
+                trustToken : parseContract.trustToken,
                 contractToken : token
             }
 

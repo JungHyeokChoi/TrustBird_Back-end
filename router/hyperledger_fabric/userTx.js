@@ -182,6 +182,7 @@ const userTx = {
                 request.targetAttr
             )
 
+            console.log(result.toStinrg())
             if (result.length == 0) {
                 return { 
                     result : true 

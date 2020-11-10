@@ -13,10 +13,10 @@ type SmartContract struct {
 }
 
 type MaintenanceFee struct {
+	Email string `json:"email"`
 	ClaimingAgency string `json:"claimingAgency"`
 	ElectronicPaymentNum string `json:"electronicPaymentNum"`
 	DueDate string `json:"dueDate"`
-	Deadline string `json:"deadline"`
 	AmountDue string `json:"amountDue"`
 	AmountDeadline string `json:"amountDeadline"`
 	Payment string `json:"payment"`
@@ -56,10 +56,10 @@ func  (s *SmartContract) addMaintenanceFee(APIstub shim.ChaincodeStubInterface, 
 		return shim.Error("fail!")
 	}
 	var maintenanceFee = MaintenanceFee{
-		ClaimingAgency : args[0],
-		ElectronicPaymentNum : args[1],
-		DueDate : args[2],
-		Deadline : args[3],
+		Email : args[0],
+		ClaimingAgency : args[1],
+		ElectronicPaymentNum : args[2],
+		DueDate : args[3],
 		AmountDue : args[4],
 		AmountDeadline : args[5],
 		Payment : args[6],
@@ -69,7 +69,7 @@ func  (s *SmartContract) addMaintenanceFee(APIstub shim.ChaincodeStubInterface, 
 			FilePath : args[9]}}
 
 	maintenanceFeeAsBytes, _ := json.Marshal(maintenanceFee)
-	APIstub.PutState(args[1], maintenanceFeeAsBytes)
+	APIstub.PutState(args[2], maintenanceFeeAsBytes)
 	
 	return shim.Success(nil)
 }
@@ -79,7 +79,7 @@ func  (s *SmartContract) updateMaintenanceFee(APIstub shim.ChaincodeStubInterfac
 		return shim.Error("fail!")
 	}
 
-	maintenanceFeeAsBytes, _ := APIstub.GetState(args[1])
+	maintenanceFeeAsBytes, _ := APIstub.GetState(args[2])
 	if(maintenanceFeeAsBytes == nil) {
 		return shim.Error("This maintenanceFee is not exist. Update fail")
 	}
@@ -88,10 +88,10 @@ func  (s *SmartContract) updateMaintenanceFee(APIstub shim.ChaincodeStubInterfac
 
 	json.Unmarshal(maintenanceFeeAsBytes, &maintenanceFee)
 	maintenanceFee = MaintenanceFee{
-		ClaimingAgency : args[0],
-		ElectronicPaymentNum : args[1],
-		DueDate : args[2],
-		Deadline : args[3],
+		Email : args[0],
+		ClaimingAgency : args[1],
+		ElectronicPaymentNum : args[2],
+		DueDate : args[3],
 		AmountDue : args[4],
 		AmountDeadline : args[5],
 		Payment : args[6],
@@ -101,7 +101,7 @@ func  (s *SmartContract) updateMaintenanceFee(APIstub shim.ChaincodeStubInterfac
 			FilePath : args[9]}}
 
 	maintenanceFeeAsBytes, _ = json.Marshal(maintenanceFee)
-	APIstub.PutState(args[1], maintenanceFeeAsBytes)
+	APIstub.PutState(args[2], maintenanceFeeAsBytes)
 	
 	return shim.Success(nil)
 }

@@ -1,86 +1,118 @@
-const contract = require('./trustContract')
 const Web3 = require('web3')
-const web3 = new Web3(new Web3.providers.HttpProvider("http://localhost:7545"))
+const web3 = new Web3(new Web3.providers.HttpProvider("http://localhost:8545"))
 
-const allContract = (data) => {
-    try{
-        switch(data.function) {
-            case "getHashValueOfTrust" :
-                contract.methods.getHashValueOfTrust(data.client).call({from: data.client})
-                .then((req) => {
-                    var result = {
-                        result : true,
-                        data : req
-                    }
-                    return result;
-                })
+const ABI = require('../../ethereum/build/contracts/TrustBird').abi
+// Contract Address
+const CA = "0x45274eBBA1e2B6C64BB1757681387e2231830127"
+const contract = new web3.eth.Contract(ABI, CA)
 
-            case "getHashValueOfContract" :
-                contract.methods.getHashValueOfTrust(data.client).call({from: data.client})
-                .then((req) => {
-                    var result = {
-                        result : true,
-                        data : req
-                    }
-                    return result;
-                })
-                break;
-    
-            case "addHashValueOfTrust" :
-                contract.methods.addHashValueOfTrust(data.client, data.hashValue, data.index).send({
-                    from: data.client,
-                    value: web3.utils.toWei(data.client.money, 'ether'),
-                    gas: 2000000
-                }).then((req)=>{
-                    console.log(req)
-                    return 
-                })
-                break;
-    
-            case "addHashValueOfContract" :
-                contract.methods.addHashValueOfContract(data.client, data.hashValue, data.index).send({
-                    from: data.client,
-                    value: web3.utils.toWei(data.client.money, 'ether'),
-                    gas: 2000000
-                }).then((req)=>{
-                    console.log(req)
-                    return 
-                })
-                break;
-    
-            case "removeHashValueOfTrust" :
-                contract.methods.removeHashValueOfTrust(data.client, data.index).send({
-                    from: data.client,
-                    value: web3.utils.toWei(data.client.money, 'ether'),
-                    gas: 2000000
-                }).then((req)=>{
-                    console.log(req)
-                    return
-                })
-                break;
-    
-            case "removeHashValueOfContract" :
-                contract.methods.removeHashValueOfContract(data.client, data.index).send({
-                    from: data.client,
-                    value: web3.utils.toWei(data.client.money, 'ether'),
-                    gas: 2000000
-                }).then((req)=>{
-                    console.log(req)
-                    return
-                })
-                break;
+const account = "0xE6C34662f41b6d2033B0E77B338111698Ba3e13b"
+
+const ethereumTx = {
+    getHashValueOfTrust : async(request) => {
+        try {
+            console.log(CA,account)
+            const result = await contract.methods.getHashValueOfTrust(request.email).call({from: account}).catch
+
+            return {
+                result : true,
+                trusts : result
+            }
+        } catch(error) {
+            console.log(error)
+
+            return {
+                result : false,
+                error : error
+            }
         }
-    }
-    catch(error) {
-        console.log(error)
-        var result = {
-            result : false,
-            data : "Error"
-        }
+    },
 
-        return result
+    addHashValueOfTrust : async(request) => {
+        try {
+            await contract.methods.addHashValueOfTrust(request.email, request.token, request.index).send({
+                from: account,
+                gas: 2000000,
+                gasPrice:"300000"
+            })
+    
+            return true
+
+        } catch(error) {
+            console.log(error)
+
+            return false
+        }
+    },
+
+    removeHashValueOfTrust : async(request) => {
+        try {
+            await contract.methods.removeHashValueOfTrust(request.email, request.index).send({
+                from: account,
+                gas: 2000000,
+                gasPrice:"300000"
+            })
+           
+            return true
+        } catch(error) {
+            console.log(error)
+
+            return false
+        }
+    },
+
+    getHashValueOfContract : async(request) => {
+        try {
+            const result = await contract.methods.getHashValueOfContract(request.token).call({from: account})
+        
+            return {
+                result : true,
+                contract : result
+            }
+        } catch(error) {
+            console.log(error)
+
+            return {
+                result : false,
+                error : error
+            }
+        }
+    },
+
+    addHashValueOfContract : async(request) => {
+        try {
+            await contract.methods.addHashValueOfContract(request.trustToken, request.contractToken).send({
+                from: account,
+                gas: 2000000,
+                gasPrice:"300000"
+            })
+    
+            return true
+
+        } catch(error) {
+            console.log(error)
+
+            return false
+        }
+    },
+
+    removeHashValueOfContract : async(request) => {
+        try {
+            await contract.methods.removeHashValueOfContract(request.trustToken).send({
+                from: account,
+                gas: 2000000,
+                gasPrice:"300000"
+            })
+    
+            return true
+
+        } catch(error) {
+            console.log(error)
+
+            return false
+        }
     }
 }
 
 
-module.exports =  allContract;
+module.exports =  ethereumTx;

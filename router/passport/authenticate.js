@@ -1,6 +1,6 @@
 /*
     supervisor : 관라자
-    legarTL : 법무팀장
+    legalTL : 법무팀장
     maintenanceTL : 시설팀장
     accountingTL 회계팀장
     warrantyServieceTL : 사후관리팀장
