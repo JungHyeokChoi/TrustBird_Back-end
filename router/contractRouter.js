@@ -38,7 +38,7 @@ router.route('/enroll')
         const contractRequest = {
             gateway : Contract.gateway,
             contract : {
-                trustToken : req.body.trustToken,
+                trustToken : parseContract.trustToken,
                 token : token,
                 preToken : parseContract.preToken,
                 locatino : parseContract.location,
@@ -131,7 +131,7 @@ router.route('/update')
         const contractRequest = {
             gateway : Contract.gateway,
             contract : {
-                trustToken : req.body.trustToken,
+                trustToken : parseContract.trustToken,
                 token : token,
                 preToken : parseContract.preToken,
                 locatino : parseContract.location,
@@ -274,6 +274,8 @@ router.route('/list')
         } else if(response.contracts === undefined) { 
             res.status(401).json({message : 'This contract not exist'})
         } else {
+            let no = 1
+
             const projection = {
                 token : 1,
                 location : 1, 
@@ -284,6 +286,8 @@ router.route('/list')
 
             for (let contract of response.contracts) {
                 await selectProperties(contract, projection)
+
+                contract.no = no++
             }
             
             res.status(200).json(response.contracts)

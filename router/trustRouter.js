@@ -285,7 +285,6 @@ router.route('/list')
                 attachments : 0
             }
 
-            console.log(response.trusts)
             const trusts = new Array()
             for (let trust of response.trusts) {
                 await selectProperties(trust, projection)
@@ -304,7 +303,7 @@ router.route('/list')
                         }
                         break
                     case "accountingTL" : 
-                        if(trust.status === "계약금 입금 대기"){
+                        if(trust.status === "사용자 계약 승인"){
                             trusts.push(trust)
                         }
                         break

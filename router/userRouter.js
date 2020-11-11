@@ -323,7 +323,6 @@ router.route('/attribute')
 
         const response  = await userTx.readAttribute(request)
 
-        console.log(response.value)
         if (!response.result) {
             console.log(response.error)
             res.status(500).json({error : 'Internal error please try again'})
