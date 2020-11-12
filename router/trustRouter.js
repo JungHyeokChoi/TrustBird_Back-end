@@ -9,6 +9,8 @@ const userTx = require('./hyperledger_fabric/userTx')
 const trustTx = require('./hyperledger_fabric/trustTx')
 const contractTx = require('./hyperledger_fabric/contractTx')
 
+const ethereumTx = require('./ethereum/ethereumTx')
+
 const authenticate = require('./passport/authenticate')
 
 // Trust Subscription
@@ -78,7 +80,30 @@ router.route('/subscription')
             result = await userTx.addAttribute(userRequest)
 
             if(result) {
-                res.status(200).json({message : 'Trust Subscription Success'})
+                let ethereumResponse = await ethereumTx.getHashValueOfTrust({ email })
+
+                const ethereumRequest = {
+                    email : email,
+                    token : token,
+                    index : 65535
+                }
+                
+                let i = 0
+                for(let trust of ethereumResponse.trusts) {
+                    if(!trust) {
+                        ethereumRequest.index = i
+                        break
+                    }
+                    i++
+                }
+                
+                ethereumResponse = await ethereumTx.addHashValueOfTrust(ethereumRequest)
+
+                if(ethereumResponse) {
+                    res.status(200).json({message : 'Trust Subscription Success'})
+                } else {
+                    res.status(500).json({error : 'Internal error please try again'})
+                }
             } else {
                 res.status(500).json({error : 'Internal error please try again'})
             }
@@ -154,7 +179,38 @@ router.route('/update')
             result = await userTx.updateAttribute(userRequest)
 
             if(result) {
-                res.status(200).json({message : 'Trust Update Success'})
+                let ethereumResponse = await ethereumTx.getHashValueOfTrust({ email })
+
+                let ethereumRequest = {
+                    email : email,
+                    index : 65535
+                }
+
+                let i = 0
+
+                for(let trust of ethereumResponse.trusts) {
+                    if(trust === req.body.preToken) {
+                        ethereumRequest.index = i
+                        break
+                    }
+                    i++
+                }
+                
+                ethereumResponse = await ethereumTx.removeHashValueOfTrust(ethereumRequest)
+
+                if(ethereumResponse) {
+                    ethereumRequest.token = token
+
+                    ethereumResponse = await ethereumTx.addHashValueOfTrust(ethereumRequest)
+
+                    if(ethereumResponse) {
+                        res.status(200).json({message : 'Trust Subscription Success'})
+                    } else {
+                        res.status(500).json({error : 'Internal error please try again'})
+                    }
+                } else {
+                    res.status(500).json({error : 'Internal error please try again'})
+                }
             } else {
                 res.status(500).json({error : 'Internal error please try again'})
             }
@@ -221,7 +277,30 @@ router.route('/delete')
                 result = await userTx.removeAttribute(userRequest)
 
                 if(result) {
-                    res.status(200).json({message : 'Trust Delete Success'})
+                    let ethereumResponse = await ethereumTx.getHashValueOfTrust({ email })
+
+                    const ethereumRequest = {
+                        email : email,
+                        index : 65535
+                    }
+    
+                    let i = 0
+    
+                    for(let trust of ethereumResponse.trusts) {
+                        if(trust === req.body.preToken) {
+                            ethereumRequest.index = i
+                            break
+                        }
+                        i++
+                    }
+                    
+                    ethereumResponse = await ethereumTx.removeHashValueOfTrust(ethereumRequest)
+    
+                    if(ethereumResponse) {
+                        res.status(200).json({message : 'Trust Delete Success'})
+                    } else {
+                        res.status(500).json({error : 'Internal error please try again'})
+                    }
                 } else {
                     res.status(500).json({error : 'Internal error please try again'})
                 }

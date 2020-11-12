@@ -3,21 +3,21 @@ const web3 = new Web3(new Web3.providers.HttpProvider("http://localhost:8545"))
 
 const ABI = require('../../ethereum/build/contracts/TrustBird').abi
 // Contract Address
-const CA = "0x45274eBBA1e2B6C64BB1757681387e2231830127"
+const CA = "0x31097d310E0B862AC11E7337d83Ce72Ee153EBD0"
 const contract = new web3.eth.Contract(ABI, CA)
 
-const account = "0xE6C34662f41b6d2033B0E77B338111698Ba3e13b"
+const account = "0xA41249C57ba04942CAB611158f2b2b269E5881a1"
 
 const ethereumTx = {
     getHashValueOfTrust : async(request) => {
         try {
-            console.log(CA,account)
-            const result = await contract.methods.getHashValueOfTrust(request.email).call({from: account}).catch
+            const result = await contract.methods.getHashValueOfTrust(request.email).call({from: account})
 
             return {
                 result : true,
                 trusts : result
             }
+
         } catch(error) {
             console.log(error)
 

@@ -8,6 +8,8 @@ const ipfs = require('./ipfs/ipfs')
 const trustTx = require('./hyperledger_fabric/trustTx')
 const contractTx = require('./hyperledger_fabric/contractTx')
 
+const ethereumTx = require('./ethereum/ethereumTx')
+
 const authenticate = require('./passport/authenticate')
 
 // Contract Enroll
@@ -96,7 +98,17 @@ router.route('/enroll')
             result = await trustTx.setContract(trustRequest)
 
             if(result) {
-                res.status(200).json({message : 'Contract Enroll Success'})
+                const ethereumRequest = {
+                    trustToken : parseContract.trustToken,
+                    contractToken : token
+                }
+                const ethereumResponse = await ethereumTx.addHashValueOfContract(ethereumRequest)
+
+                if(ethereumResponse) {
+                    res.status(200).json({message : 'Contract Enroll Success'})
+                } else {
+                    res.status(500).json({error : 'Internal error please try again'})
+                }
             } else {
                 res.status(500).json({error : 'Internal error please try again'})
             }
@@ -189,7 +201,17 @@ router.route('/update')
             result = await trustTx.setContract(trustRequest)
 
             if(result) {
-                res.status(200).json({message : 'Contract Update Success'})
+                const ethereumRequest = {
+                    trustToken : parseContract.trustToken,
+                    contractToken : token
+                }
+                const ethereumResponse = await ethereumTx.addHashValueOfContract(ethereumRequest)
+
+                if(ethereumResponse) {
+                    res.status(200).json({message : 'Contract Update Success'})
+                } else {
+                    res.status(500).json({error : 'Internal error please try again'})
+                }
             } else {
                 res.status(500).json({error : 'Internal error please try again'})
             }
@@ -224,7 +246,13 @@ router.route('/delete')
                 result = await trustTx.setContract(trustRequest)
 
                 if(result) {
-                    res.status(200).json({message : 'Contract Delete Success'})
+                    const ethereumResponse = await ethereumTx.removeHashValueOfContract({trustToken : req.body.trustToken})
+    
+                    if(ethereumResponse) {
+                        res.status(200).json({message : 'Contract Delete Success'})
+                    } else {
+                        res.status(500).json({error : 'Internal error please try again'})
+                    }
                 } else {
                     res.status(500).json({error : 'Internal error please try again'})
                 }

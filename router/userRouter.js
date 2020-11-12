@@ -10,6 +10,8 @@ const trustTx = require('./hyperledger_fabric/trustTx')
 const contractTx = require('./hyperledger_fabric/contractTx')
 const maintenanceFeeTx = require('./hyperledger_fabric/maintenanceFeeTx')
 
+const ethereumTx = require('./ethereum/ethereumTx')
+
 const authenticate = require('./passport/authenticate')
 
 // User SignUp
@@ -508,6 +510,35 @@ router.route('/maintenancefeelist')
                 }
             }
             res.status(200).json(maintenanceFees)
+        }
+    })
+
+router.route('/ethereumlist')
+    .get(authenticate.user, async(req, res) => {
+        console.log('User Ethereum List')
+
+        const trustResponse =  await ethereumTx.getHashValueOfTrust({ email : req.user.email })
+
+        if(trustResponse.result) {
+            const result = new Array()
+
+            let no = 1
+
+            for(let trust of trustResponse.trusts){
+                let contractResponse = await ethereumTx.getHashValueOfContract({ token : trust })
+
+                result.push({
+                    no : no++,
+                    trustToken : trust,
+                    contractToken : contractResponse.contract
+                })
+            }
+
+            res.status(200).json(result)
+
+        } else {
+            console.log(response.error)
+            res.status(500).json({error : 'Internal error please try again'})
         }
     })
 

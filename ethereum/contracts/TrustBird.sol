@@ -55,6 +55,6 @@ contract TrustBird {
         require(msg.sender == owner, "Wrong approach");
         
         totalContract--;
-        delete hashValueOfContract[token];
+        delete hashValueOfContract[trustToken];
     }
 }
