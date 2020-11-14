@@ -25,10 +25,10 @@ router.route('/input')
 
         const maintenanceFeeRequest = {
             contract : MaintenanceFee.contract,
+            email : req.body.email,
             claimingAgency : req.body.claimingAgency,
             electronicPaymentNum : req.body.electronicPaymentNum,
             dueDate : req.body.dueDate,
-            deadline : req.body.deadline,
             amountDue : req.body.amountDue,
             amountDeadline : req.body.amountDeadline,
             payment : req.body.payment,
@@ -76,10 +76,10 @@ router.route('/update')
 
         const request = {
             contract : MaintenanceFee.contract,
+            email : req.body.email,
             claimingAgency : req.body.claimingAgency,
             electronicPaymentNum : req.body.electronicPaymentNum,
             dueDate : req.body.dueDate,
-            deadline : req.body.deadline,
             amountDue : req.body.amountDue,
             amountDeadline : req.body.amountDeadline,
             payment : req.body.payment,
@@ -176,7 +176,10 @@ router.route('/list')
         } else if(response.maintenanceFees === undefined) { 
             res.status(401).json({message : 'This maintenanceFee not exist'})
         } else {
+            let no = 1
+
             const projection = {
+                email : 1,
                 claimingAgency : 1,
                 electronicPaymentNum : 1,
                 dueDate : 1,
@@ -185,6 +188,8 @@ router.route('/list')
             
             for(let maintenanceFee of response.maintenanceFees){
                 selectProperties(maintenanceFee, projection)
+
+                maintenanceFee.no = no++
             }
 
             res.status(200).json(response.maintenanceFees)

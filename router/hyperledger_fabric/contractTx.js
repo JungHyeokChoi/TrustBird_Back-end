@@ -17,8 +17,6 @@ const contractTx = {
                 args : contract,
             }
 
-            console.log(contract)
-            
             await sendTransactionProposal(peer_request, 60000)
 
             return true

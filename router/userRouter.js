@@ -542,6 +542,49 @@ router.route('/ethereumlist')
         }
     })
 
+// Create Supervisor(For Developer)
+router.route('/createSupervisor')
+    .get(async(req, res) => {
+        console.log('User SignUp...')
+
+        const User = await wallet('user')
+        
+        let request = {
+            contract : User.contract,
+            email : 'supervisor@naver.com'
+        }
+
+        const response = await userTx.readUser(request)
+
+        if (!response.result) {
+            console.log(response.error)
+            res.status(500).json({error : 'Internal error please try again'})
+        } else if(response.user !== undefined) { 
+            res.status(401).json({message : 'This user exist'})
+        } else {
+            request = {
+                contract : User.contract,
+                username : 'Supervisor',
+                email : 'supervisor@naver.com',
+                password : passwordToHash('1234'),
+                dateOfBirth : new Date().toISOString().substring(0, 10),
+                gender : '남성',
+                telephoneNum : '01012345678',
+                permission : 'supervisor',
+                membership : '0',
+                balance : '0'            
+            }
+
+            const result = await userTx.addUser(request)
+
+            if (result) {
+                res.status(200).json({message : 'Create Supervisor Success'})
+            } else {
+                res.status(500).json({error : 'Internal error please try again'})
+            }
+        }
+    })
+
 router.route('/infomation')
     .get(authenticate.user, (req, res) => {
         res.status(200).json({user : req.user})
