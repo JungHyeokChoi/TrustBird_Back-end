@@ -94,7 +94,7 @@ cd ..
 ./network.sh explorerUp
 ```
 
-**<u><font color="red">Caution : Blockchain Explorer doesn't work before chaincode install & instantiate</font></u>** 
+<font color='red'> Caution : Blockchain Explorer doesn't work before chaincode install & instantiate </font> 
 
 
 
