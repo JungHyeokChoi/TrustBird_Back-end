@@ -1,11 +1,10 @@
-# Project : Trust  Bird(Back-end)<br />
-
+# Project : Trust  Bird(Back-end)<br>
+<br>
      
 ## 1. What is Trust Bird?
 
-
-###   Trust Bird is a trust contract platform for lessee.   
-
+###   Trust Bird is a trust contract platform for lessee. 
+<br>
 
 
 ###  - Architecture
@@ -17,6 +16,7 @@
 
 
 ### - Using Port
+<br>
 
 |        Name         | Number |
 | :-----------------: | :----: |
@@ -26,7 +26,7 @@
 |    IPFS Gateway     |  8080  |
 |     Ganache-cli     |  8545  |
 
-
+<br>
 
 ## 2. Get Start
 
@@ -94,7 +94,7 @@ cd ..
 ./network.sh explorerUp
 ```
 
-<font color='red'> Caution : Blockchain Explorer doesn't work before chaincode install & instantiate </font> 
+**Caution : Blockchain Explorer doesn't work before chaincode install & instantiate**
 
 
 
