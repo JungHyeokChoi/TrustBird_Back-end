@@ -4,13 +4,29 @@
 
 ## 1. What is Trust Bird?
 
-- Trust Bird is a trust contract platform for lessee.
+###  Trust Bird is a trust contract platform for lessee.
 
-  
 
-- Architecture
 
-  ![_Real estate transaction Architecture(ver_hyperledger)](https://user-images.githubusercontent.com/65533287/99356460-89408800-28ed-11eb-8520-49c6db65bed3.jpg)
+###  - Architecture
+
+
+
+![_Real estate transaction Architecture(ver_hyperledger)](https://user-images.githubusercontent.com/65533287/99356460-89408800-28ed-11eb-8520-49c6db65bed3.jpg)
+
+
+
+### - Using Port
+
+|        Name         | Number |
+| :-----------------: | :----: |
+|       Express       |  3001  |
+| Blockchain Explorer |  8000  |
+|     IPFS Swarm      |  4001  |
+|    IPFS Gateway     |  8080  |
+|     Ganache-cli     |  8545  |
+
+
 
 ## 2. Get Start
 
@@ -123,4 +139,3 @@ truffle migrate
 cd hyperledger_fabric/network
 ./network.sh down
 ```
-
