@@ -3,7 +3,7 @@
      
 ## 1. What is Trust Bird?
 
-###   Trust Bird is a trust contract platform for lessee. 
+###   TrustBird is a trust contract platform for lessee. 
 <br>
 
 
