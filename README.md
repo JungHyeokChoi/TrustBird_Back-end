@@ -1,11 +1,13 @@
-# Project : Trust  Bird(Back-end)<br />
+# Project : Trust  Bird(Back-end)
+
+
 
 
 
 
 ## 1. What is Trust Bird?
 
-###  Trust Bird is a trust contract platform for lessee.
+###   Trust Bird is a trust contract platform for lessee.
 
 
 
@@ -95,7 +97,7 @@ cd ..
 ./network.sh explorerUp
 ```
 
-**<u><span style="color:red">Caution : Blockchain Explorer doesn't work before chaincode install & instantiate</u>** </span>
+<span style="color:red">**<u>Caution : Blockchain Explorer doesn't work before chaincode install & instantiate</u>** </span>
 
 
 
