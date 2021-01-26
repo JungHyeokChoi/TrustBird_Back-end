@@ -1,235 +1,442 @@
 const router = require('express').Router()
-const fs = require("fs")
-const { upload, jsonToHash } = require("./utils")
 
-const User = require('../models/User')
-const Trust = require('../models/Trust')
-const Contract = require('../models/Contract')
+const { upload, jsonToHash, selectProperties } = require('./utils')
+const { wallet } = require('./hyperledger_fabric/utils')
+
+const ipfs = require('./ipfs/ipfs')
+
+const userTx = require('./hyperledger_fabric/userTx')
+const trustTx = require('./hyperledger_fabric/trustTx')
+const contractTx = require('./hyperledger_fabric/contractTx')
+
+const ethereumTx = require('./ethereum/ethereumTx')
 
 const authenticate = require('./passport/authenticate')
 
 // Trust Subscription
 router.route('/subscription')
-    .post(authenticate.user, (req, res) => {
-        upload.array("attachments")(req, res, (err) => {
-            if(err) {
-                console.log(err)
+    .post(authenticate.user, upload.array('attachments'), async(req, res) => {
+        console.log('Trust Subscription...')
+
+        const email = req.user.permission === 'user' ? req.user.email : req.body.email
+
+        const files = new Array()
+
+
+        for (const file of req.files) {
+            const result = await ipfs.add({
+                name : file.originalname,
+                path : file.path,
+                savePath : `trust/${email}`
+            })
+
+            files.push(result)
+        }
+
+        req.body.files = files
+
+        const token = await jsonToHash(req.body)
+
+        req.body.token = token
+
+        const Trust = await wallet('trust')
+
+        const trustRequest = {
+            gateway : Trust.gateway,
+            trust : {
+                token : req.body.token,
+                preToken : req.body.preToken,
+                username : req.body.username,
+                telephoneNum : req.body.telephoneNum,
+                realtorName : req.body.realtorName,
+                realtorTelephoneNum : req.body.realtorTelephoneNum,
+                realtorCellphoneNum : req.body.realtorCellphoneNum,
+                type : req.body.type,
+                securityDeposit : req.body.securityDeposit,
+                rent : req.body.rent,
+                purpose : req.body.purpose,
+                periodStart : req.body.periodStart,
+                periodEnd : req.body.periodEnd,
+                etc : req.body.etc,
+                status : req.body.status,
+                contract : req.body.contract,
+                attachments : req.body.files
+            }
+        }
+
+        let result = await trustTx.addTrust(trustRequest)
+        
+        if (!result) {
+            res.status(500).json({error : 'Internal error please try again'})
+        } else {
+            const User = await wallet('user')
+
+            const userRequest = {
+                contract : User.contract,
+                email : email,
+                targetAttr : 'Trust',
+                value : token
+            }
+            result = await userTx.addAttribute(userRequest)
+
+            if(result) {
+                let ethereumResponse = await ethereumTx.getHashValueOfTrust({ email })
+
+                const ethereumRequest = {
+                    email : email,
+                    token : token,
+                    index : 65535
+                }
+                
+                let i = 0
+                for(let trust of ethereumResponse.trusts) {
+                    if(!trust) {
+                        ethereumRequest.index = i
+                        break
+                    }
+                    i++
+                }
+                
+                ethereumResponse = await ethereumTx.addHashValueOfTrust(ethereumRequest)
+
+                if(ethereumResponse) {
+                    res.status(200).json({message : 'Trust Subscription Success'})
+                } else {
+                    res.status(500).json({error : 'Internal error please try again'})
+                }
+            } else {
                 res.status(500).json({error : 'Internal error please try again'})
             }
-            
-            User.findOne({ email : req.user.eamil }, { username : 1, telephoneNum : 1 }, (err, result) => {
-                if(err) {
-                    console.log(err)
-                    res.status(500).json({error : 'Internal error please try again'})
-                } else if (!result) {
-                    res.status(401).json({message : 'This user not exist.'}) 
-                } else {
-                    req.body.username = result.username
-                    req.body.telephoneNum = result.telephoneNum
-                }
-            })
-
-            const token = jsonToHash(req.body)
-
-            req.body.token = token
-            
-            const trustStringData = req.body
-            const attachments = new Array()
-    
-            req.files.forEach((file) => {
-                const attachment = {
-                    originalName : file.originalname,
-                    saveFileName : file.filename,
-                    fileSize : file.size,
-                    mimeType : file.mimeType,
-                    fileBinary : fs.readFileSync(file.path)
-                }
-                attachments.push(attachment)
-            })
-    
-            const trustData = {
-                ...trustStringData,
-                attachments
-            }
-            const trust = new Trust(trustData)
-            
-            trust.save((err) => {
-                if(err){
-                    console.log(err)
-                    res.status(500).json({error : 'Internal error please try again'})
-                } else {
-                    req.files.forEach(function(file){
-                        fs.unlinkSync(file.path)
-                    })
-
-                    const email = req.user.permission === "admin" ? req.body.email : req.user.email
-
-                    User.updateOne({ email }, { $push : { trust : token }}, (err, result) => {
-                        if(err) {
-                            console.log(err)
-                            res.status(500).json({error : 'Internal error please try again'})
-                        } else if(!result.n) {
-                            res.status(401).json({message : 'This user not exist'})
-                        } else {
-                            res.status(200).json({message : 'Trust Input Success'})
-                        }
-                    })
-                }
-            })
-        })
+        }
     })
     
 // Trust Upload
 router.route('/update')
-    .post(authenticate.user, (req, res) => {
-        upload.array("attachments")(req, res, (err) => {
-            if(err) {
-                console.log(err)
+    .post(authenticate.user,  upload.array('attachments'), async(req, res) => {
+        console.log('Trust Upload...')
+
+        const email = req.user.permission === 'user' ? req.user.email : req.body.email
+
+        const files = new Array()
+        
+        for (const file of req.files) {
+            const result = await ipfs.add({
+                name : file.originalname,
+                path : file.path,
+                savePath : `trust/${email}`
+            })
+
+            files.push(result)
+        }
+
+        req.body.files = files
+
+        const token = await jsonToHash(req.body)
+
+        req.body.token = token
+
+        const Trust = await wallet('Trust')
+
+        const trustRequest = {
+            gateway : Trust.gateway,
+            trust : {
+                token : req.body.token,
+                preToken : req.body.preToken,
+                username : req.body.username,
+                telephoneNum : req.body.telephoneNum,
+                realtorName : req.body.realtorName,
+                realtorTelephoneNum : req.body.realtorTelephoneNum,
+                realtorCellphoneNum : req.body.realtorCellphoneNum,
+                type : req.body.type,
+                securityDeposit : req.body.securityDeposit,
+                rent : req.body.rent,
+                purpose : req.body.purpose,
+                periodStart : req.body.periodStart,
+                periodEnd : req.body.periodEnd,
+                etc : req.body.etc,
+                status : req.body.status,
+                contract : req.body.contract,
+                attachments : req.body.files
+            }
+        }
+
+        let { result, error } = await trustTx.updateTrust(trustRequest)
+        
+        if (!result) {
+            console.log(error)
+            res.status(500).json({error : 'Internal error please try again'})
+        } else {
+            const User = await wallet('user')
+
+            const userRequest = {
+                contract : User.contract,
+                email : email,
+                targetAttr : 'Trust',
+                preValue : req.body.preToken,
+                newValue : token
+            }
+
+            result = await userTx.updateAttribute(userRequest)
+
+            if(result) {
+                let ethereumResponse = await ethereumTx.getHashValueOfTrust({ email })
+
+                let ethereumRequest = {
+                    email : email,
+                    index : 65535
+                }
+
+                let i = 0
+
+                for(let trust of ethereumResponse.trusts) {
+                    if(trust === req.body.preToken) {
+                        ethereumRequest.index = i
+                        break
+                    }
+                    i++
+                }
+                
+                ethereumResponse = await ethereumTx.removeHashValueOfTrust(ethereumRequest)
+
+                if(ethereumResponse) {
+                    ethereumRequest.token = token
+
+                    ethereumResponse = await ethereumTx.addHashValueOfTrust(ethereumRequest)
+
+                    if(ethereumResponse) {
+                        res.status(200).json({message : 'Trust Subscription Success'})
+                    } else {
+                        res.status(500).json({error : 'Internal error please try again'})
+                    }
+                } else {
+                    res.status(500).json({error : 'Internal error please try again'})
+                }
+            } else {
                 res.status(500).json({error : 'Internal error please try again'})
             }
-
-            const token = jsonToHash(req.body)
-            
-            req.body.token = token
-
-            const trustStringData = req.body
-            const attachments = new Array()
-    
-            req.files.forEach((file) => {
-                const attachment = {
-                    originalName : file.originalname,
-                    saveFileName : file.filename,
-                    fileSize : file.size,
-                    mimeType : file.mimeType,
-                    fileBinary : fs.readFileSync(file.path)
-                }
-                attachments.push(attachment)
-            })
-    
-            const trustData = {
-                ...trustStringData,
-                attachments
-            }
-    
-            Trust.updateOne({ token : req.body.preToken }, { $set : trustData }, (err, result) => {
-                if(err) {
-                    console.log(err)
-                    res.status(500).json({error : 'Internal error please try again'})
-                } else if(!result.n) {
-                    res.status(401).json({messasge : 'This trust not exist.'}) 
-                } else {
-                    req.files.forEach(function(file){
-                        fs.unlinkSync(file.path)
-                    })
-
-                    const isKey = 'contract' in result
-                    if(isKey) {
-                        Contract.updateOne({ token : result.contract }, { trustToken : token }, (err, result) => {
-                            if(err) {
-                                console.log(err)
-                                res.status(500).json({error : 'Internal error please try again'})
-                            }
-                        })
-                    }
-                    const email = req.user.permission === "admin" ? req.body.email : req.user.email
-
-                    User.updateOne({ email , trust : req.body.preToken }, { $set : { 'trust.$' : token }}, (err, result) => {
-                        if(err) {
-                            console.log(err)
-                            res.status(500).json({error : 'Internal error please try again'})
-                        } else if(!result.n) {
-                            res.status(401).json({message : 'This user not exist'})
-                        } else {
-                            res.status(200).json({message : 'Trust Update Success'})
-                        }
-                    })
-                }
-            })
-        })
+        }
     })
 
 // Trust Delete
 router.route('/delete')
-    .post(authenticate.user, (req, res) => {
-        Trust.deleteOne({ token : req.body.token }, (err, result) => {
-            if(err) {
-                console.log(err)
-                res.status(500).json({error : 'Internal error please try again'})
-            } else if(!result.n) {
-                res.status(401).json({message : 'This trust not exist.'}) 
-            } else {
-                const email = req.user.permission === "admin" ? req.body.email : req.user.email
+    .post(authenticate.user, async(req, res) => {
+        console.log('Trust Delete...')
 
-                User.updateOne({ email , trust : req.body.token }, { $pull : { trust : req.body.token }}, (err, result) => {
-                    if(err) {
-                        console.log(err)
+        const email = req.user.permission === 'user' ? req.user.email : req.body.email
+        
+        const Trust = await wallet('trust')
+
+        let trustRequest = {
+            contract : Trust.contract,
+            token : req.body.token
+        }
+
+        const trustResponse = await trustTx.readTrust(trustRequest)
+
+        if (!trustResponse.result) {
+            console.log(trustResponse.error)
+            res.status(500).json({error : 'Internal error please try again'})
+        } else if(trustResponse.trust === undefined) { 
+            res.status(401).json({message : 'This trust not exist'})
+        } else {
+            const isContract = 'contract' in trustResponse
+
+            if(isContract && trustResponse.contract) {
+                const Contract = await wallet('contract')
+            
+                const contractRequest = {
+                    contract : Contract.contract,
+                    token : trustResponse.contract
+                }
+
+                const contractResponse = await contractTx.readContract(contractRequest)
+
+                if (contractResponse.result) {
+                    let result = await contractTx.removeContract(contractRequest)
+                    
+                    if(!result) {
                         res.status(500).json({error : 'Internal error please try again'})
-                    } else if(!result.n) {
-                        res.status(401).json({message : 'This user not exist.'}) 
-                    } else {
-                        res.status(200).json({message : 'Trust Delete Success'})
-                    }
-                })
+                    } 
+                }
             }
-        })
+
+            result = await trustTx.removeTrust(trustRequest)
+            
+            if (!result) {
+                res.status(500).json({error : 'Internal error please try again'})
+            } else {
+                const User = await wallet('user')
+
+                const userRequest = {
+                    contract : User.contract,
+                    email : email,
+                    targetAttr : 'Trust',
+                    value : req.body.token
+                }
+
+                result = await userTx.removeAttribute(userRequest)
+
+                if(result) {
+                    let ethereumResponse = await ethereumTx.getHashValueOfTrust({ email })
+
+                    const ethereumRequest = {
+                        email : email,
+                        index : 65535
+                    }
+    
+                    let i = 0
+    
+                    for(let trust of ethereumResponse.trusts) {
+                        if(trust === req.body.preToken) {
+                            ethereumRequest.index = i
+                            break
+                        }
+                        i++
+                    }
+                    
+                    ethereumResponse = await ethereumTx.removeHashValueOfTrust(ethereumRequest)
+    
+                    if(ethereumResponse) {
+                        res.status(200).json({message : 'Trust Delete Success'})
+                    } else {
+                        res.status(500).json({error : 'Internal error please try again'})
+                    }
+                } else {
+                    res.status(500).json({error : 'Internal error please try again'})
+                }
+            }
+        }
     })
 
 // Trust Find
 router.route('/find')
-    .get(authenticate.user, (req, res) => {
-        Trust.findOne({ token : req.body.token }, { _id : 0, __v : 0, 'attachments._id' : 0 }, (err, result) => {
-            if(err){
-                console.log(err)
-                res.status(500).json({error : 'Internal error please try again'})
-            } else if(!result) {
-                res.status(401).json({message : 'This trust not exist.'}) 
-            } else {
-                res.status(200).json(result)
-            }
-        })
+    .get(authenticate.user, async(req, res) => {
+        console.log('Trust Find...')
+
+        const Trust = await wallet('trust')
+
+        const request = {
+            contract : Trust.contract,
+            token : req.query.token
+        }
+
+        const response = await trustTx.readTrust(request)
+
+        if (!response.result) {
+            console.log(response.error)
+            res.status(500).json({error : 'Internal error please try again'})
+        } else if(response.trust === undefined) { 
+            res.status(401).json({message : 'This trust not exist'})
+        } else {
+            res.status(200).json(response.trust)
+        }
     })
 
 // Trust List
 router.route('/list')
-    .get(authenticate.admin, (req, res) => {
-        Trust.find({}, { _id : 0, token : 1, type : 1, price : 1, periodStart : 1, periodEnd : 1, status : 1 }, (err, result) => {
-            if(err) {
-                console.log(err)
-                res.status(500).json({error : 'Internal error please try again'})
-            } else if(!result.length) {
-                res.status(401).json({message : 'This trust not exist.'}) 
-            } else {
-                res.status(200).json(result)
+    .get(authenticate.admin, async(req, res) => {
+        console.log('Trust List...')
+
+        const Trust = await wallet('trust')
+
+        const request = {
+            contract : Trust.contract
+        }
+
+        const response = await trustTx.readAllTrust(request)
+
+        if (!response.result) {
+            console.log(response.error)
+            res.status(500).json({error : 'Internal error please try again'})
+        } else if(response.trusts === undefined) { 
+            res.status(401).json({message : 'This trust not exist'})
+        } else {
+            let no = 1
+
+            const projection = {
+                preToken : 0,
+                telephoneNum : 0,
+                realtorName : 0,
+                realtorTelephoneNum : 0,
+                realtorCellphoneNum : 0,
+                etc : 0,
+                contract : 0,
+                attachments : 0
             }
-        })
+
+            const trusts = new Array()
+            for (let trust of response.trusts) {
+                await selectProperties(trust, projection)
+
+                trust.no =  no++
+
+                switch(req.user.permission) {
+                    case "legalTL" : 
+                        if(trust.status === "신탁 요청"){
+                            trusts.push(trust)
+                        }
+                        break
+                    case "maintenanceTL" : 
+                        if(trust.status === "법무팀 승인"){
+                            trusts.push(trust)
+                        }
+                        break
+                    case "accountingTL" : 
+                        if(trust.status === "사용자 계약 승인"){
+                            trusts.push(trust)
+                        }
+                        break
+                    default : 
+                        trusts.push(trust)
+                }
+            }
+
+            res.status(200).json(trusts)
+        }
     })
 
-// Trsut Status Change
+// Trsut Status Find & Change
 router.route('/status')
-    .get(authenticate.user, (req, res) => {
-        Trust.findOne( { token : req.body.token }, { status : 1 }, (err, result) => {
-            if(err){
-                console.log(err)
-                res.status(500).json({error : 'Internal error please try again'})
-            } else if(!result) {
-                res.status(401).json({message : 'This trust not exist.'}) 
-            } else {
-                res.status(200).json(result)
-            }
-        })
+    .get(authenticate.user, async(req, res) => {
+        console.log('Trsut Status Find...')
+
+        const Trust = await wallet('trust')
+
+        const request = {
+            contract : Trust.contract,
+            token : req.query.token
+        }
+
+        const response = await trustTx.readStatus(request)
+
+        if (!response.result) {
+            console.log(response.error)
+            res.status(500).json({error : 'Internal error please try again'})
+        } else if(response.value === undefined) { 
+            res.status(401).json({message : 'This trust not exist'})
+        } else {
+            res.status(200).json(response.value)
+        }
     })
 
-    .post(authenticate.admin, (req, res) => {
-        Trust.updateOne( { token : req.body.token }, { $set : { status : req.body.status }}, (err, result) => {
-            if(err) {
-                console.log(err)
-                res.status(500).json({error : 'Internal error please try again'})
-            } else if(!result.n) {
-                res.status(401).json({message : 'This trust not exist'})
-            } else {
-                res.status(200).json({message: 'Trust Status Update'})
-            }
-        })
+    .post(authenticate.user, async(req, res) => {
+        console.log('Trsut Status Change...')
+
+        const Trust = await wallet('trust')
+
+        const request = {
+            contract : Trust.contract,
+            token : req.body.token,
+            status : req.body.status
+        }
+
+        const result = await trustTx.setStatus(request)
+
+        if (result) {
+            res.status(200).json({message : 'Trust Set Status Success'})
+        } else {
+            res.status(500).json({error : 'Internal error please try again'})
+        }
     })
 
 module.exports = router;

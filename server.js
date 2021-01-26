@@ -2,7 +2,6 @@ const express = require('express')
 const bodyParser = require('body-parser')
 const cookieParser = require('cookie-parser')
 const passport = require('passport')
-const mongoose = require('mongoose')
 const cors = require('cors')
 const session = require('express-session')
 
@@ -25,14 +24,12 @@ app.use(session({
         secure : false
     }
 }))
-app.use(cors())
-app.use(express.static('pubilc'))
 
-//Connection Mongo DB
-mongoose.connect(process.env.MONGO_URI, {useNewUrlParser: true, useUnifiedTopology: true}, (err) => {
-    if(err) console.log(err)
-    else console.log('DB Connected')
-})
+app.use(cors({
+    origin: true,
+    credentials: true
+}))
+app.use(express.static('pubilc'))
 
 //Passport
 app.use(passport.initialize())

@@ -1,135 +1,199 @@
 const router = require('express').Router()
-const fs = require('fs')
-const { upload } = require("./utils")
 
-const User = require('../models/User')
-const MaintenanceFee = require('../models/MaintenanceFee')
+const { upload, selectProperties } = require('./utils')
+const { wallet } = require('./hyperledger_fabric/utils')
+
+const ipfs = require('./ipfs/ipfs')
+
+const userTx = require('./hyperledger_fabric/userTx')
+const maintenanceFeeTx = require('./hyperledger_fabric/maintenanceFeeTx')
 
 const authenticate = require('./passport/authenticate')
 
 // MaintenanceFee Input
 router.route('/input')
-    .post(upload.single("giro"), authenticate.admin, (req, res) => {
-        const maintenanceFeeStringData = req.body
+    .post(authenticate.admin, upload.single('giro'), async(req, res) => {
+        console.log('MaintenanceFee Input...')
 
-        const giro = {
-            originalName : req.file.originalname,
-            saveFileName : req.file.filename,
-            fileSize : req.file.size,
-            mimeType : req.file.mimeType,
-            fileBinary : fs.readFileSync(req.file.path)
-        }
-
-        const maintenanceFeeData = {
-            ...maintenanceFeeStringData,
-            giro
-        }
-        
-        const maintenanceFee = new MaintenanceFee(maintenanceFeeData)
-
-        maintenanceFee.save((err) => {
-            if(err) {
-                console.log(err)
-                res.status(500).json({error : 'Internal error please try again'})
-            } else {
-                fs.unlinkSync(req.file.path)
-                User.updateOne({ email : req.body.userEmail }, { $push : { maintenanceFee : req.body.electronicPaymentNum }}, (err, result) => {
-                    if(err) {
-                        console.log(err)
-                        res.status(500).json({error : 'Internal error please try again'})
-                    } else if(!result.n) {
-                        res.status(401).json({message : 'This user not exist'})
-                    } else {
-                        res.status(200).json({message : 'MaintenanceFee Input Success'})
-                    }
-                })
-            }
+        const { filePath, fileName } = await ipfs.add({
+            name : req.file.originalname,
+            path : req.file.path,
+            savePath : `maintenanceFee/${req.body.email}`
         })
+
+        const MaintenanceFee = await wallet('maintenanceFee')
+
+        const maintenanceFeeRequest = {
+            contract : MaintenanceFee.contract,
+            email : req.body.email,
+            claimingAgency : req.body.claimingAgency,
+            electronicPaymentNum : req.body.electronicPaymentNum,
+            dueDate : req.body.dueDate,
+            amountDue : req.body.amountDue,
+            amountDeadline : req.body.amountDeadline,
+            payment : req.body.payment,
+            payer : req.body.payer,
+            fileName : fileName,
+            filePath : filePath
+        }
+
+        let result = await maintenanceFeeTx.addMaintenanceFee(maintenanceFeeRequest)
+        
+        if (!result) {
+            res.status(500).json({error : 'Internal error please try again'})
+        } else {
+            const User = await wallet('user')
+
+            const userRequest = {
+                contract : User.contract,
+                email : req.body.email,
+                targetAttr : 'MaintenanceFee',
+                value : req.body.electronicPaymentNum
+            }
+
+            result = await userTx.addAttribute(userRequest)
+
+            if(result) {
+                res.status(200).json({message : 'MaintenanceFee Input Success'})
+            } else {
+                res.status(500).json({error : 'Internal error please try again'})
+            }
+        }
     })
 
 // MaintenanceFee Update
 router.route('/update')
-    .post(upload.single("giro"), authenticate.admin, (req, res) => {
-        const maintenanceFeeStringData = req.body
-        const giro = {
-            originalName : req.file.originalname,
-            saveFileName : req.file.filename,
-            fileSize : req.file.size,
-            mimeType : req.file.mimeType,
-            fileBinary : fs.readFileSync(req.file.path)
-        }
+    .post(authenticate.admin, upload.single('giro'), async(req, res) => {
+        console.log('MaintenanceFee Update...')
 
-        const maintenanceFeeData = {
-            ...maintenanceFeeStringData,
-            giro
-        }
-
-        MaintenanceFee.updateOne({ electronicPaymentNum : req.body.electronicPaymentNum }, { $set : maintenanceFeeData }, (err, result) => {
-            if(err) {
-                console.log(err)
-                res.status(500).json({error : 'Internal error please try again'})
-            } else if(!result.n) {
-                res.status(401).json({message : 'This maintenanceFee not exist'})
-            } else {
-                fs.unlinkSync(req.file.path)
-                res.status(200).json({message : 'MaintenanceFee Update Success'})
-            }
+        const { filePath, fileName } = await ipfs.add({
+            name : req.file.originalname,
+            path : req.file.path,
+            savePath : `maintenanceFee/${req.body.email}`
         })
+
+        const MaintenanceFee = await wallet('maintenanceFee')
+
+        const request = {
+            contract : MaintenanceFee.contract,
+            email : req.body.email,
+            claimingAgency : req.body.claimingAgency,
+            electronicPaymentNum : req.body.electronicPaymentNum,
+            dueDate : req.body.dueDate,
+            amountDue : req.body.amountDue,
+            amountDeadline : req.body.amountDeadline,
+            payment : req.body.payment,
+            payer : req.body.payer,
+            fileName : fileName,
+            filePath : filePath
+        }
+
+        const result = await maintenanceFeeTx.updateMaintenanceFee(request)
+
+        if (!result) {
+            res.status(500).json({error : 'Internal error please try again'})
+        } else {
+            res.status(200).json({message : 'MaintenanceFee Update Success'})
+        }
     })
 
 // MaintenanceFee Delete
 router.route('/delete')
-    .post(authenticate.admin, (req, res) => {
-        MaintenanceFee.deleteOne({ electronicPaymentNum : req.body.electronicPaymentNum }, (err, result) => {
-            if(err) {
-                console.log(err)
-                res.status(500).json({error : 'Internal error please try again'})
-            } else if(!result.n) {
-                res.status(401).json({message : 'This maintenanceFee not exist'})
-            } else {
-                User.updateOne({ email : req.body.userEmail, maintenanceFee : req.body.electronicPaymentNum }, { $pull : { maintenanceFee : req.body.electronicPaymentNum }}, (err, result) => {
-                    if(err) {
-                        console.log(err)
-                        res.status(500).json({error : 'Internal error please try again'})
-                    } else if(!result.n) {
-                        res.status(401).json({message : 'This user not exist.'}) 
-                    } else {
-                        res.status(200).json({message : 'MaintenanceFee Delete Success'})
-                    }
-                })
+    .post(authenticate.admin, async(req, res) => {
+        console.log('MaintenanceFee Delete...')
+
+        const MaintenanceFee = await wallet('maintenanceFee')
+
+        const maintenanceFeeRequest = {
+            contract : MaintenanceFee.contract,
+            electronicPaymentNum : req.body.electronicPaymentNum
+        }
+
+        let result = await maintenanceFeeTx.removeMaintenanceFee(maintenanceFeeRequest)
+        
+        if(!result) {
+            res.status(500).json({error : 'Internal error please try again'})
+        } else {
+            const User = await wallet('user')
+
+            const userRequest = {
+                contract : User.contract,
+                email : req.body.email,
+                targetAttr : 'MaintenanceFee',
+                value : req.body.electronicPaymentNum
             }
-        })
+
+            result = await userTx.removeAttribute(userRequest)
+
+            if(result) {
+                res.status(200).json({message : 'MaintenanceFee Delete Success'})
+            } else {
+                res.status(500).json({error : 'Internal error please try again'})
+            }
+        }
     })
 
 // MaintenanceFee Find
 router.route('/find')
-    .get(authenticate.user, (req, res) => {
-        MaintenanceFee.findOne({ electronicPaymentNum : req.body.electronicPaymentNum }, { _id : 0, __v : 0 },(err, result) => {
-            if(err) {
-                console.log(err)
-                res.status(500).json({error : "Internal error please try again"})
-            } else if(!result) {
-                res.status(401).json({message : 'This maintenanceFee not exist'})
-            } else {
-                res.status(200).json(result)
-            }
-        })
+    .get(authenticate.user, async(req, res) => {    
+        console.log('MaintenanceFee Find...')
 
+        const MaintenanceFee = await wallet('maintenanceFee')
+
+        const request = {
+            contract : MaintenanceFee.contract,
+            electronicPaymentNum : req.query.electronicPaymentNum
+        }
+
+        const response = await maintenanceFeeTx.readMaintenanceFee(request)
+
+        if (!response.result) {
+            console.log(response.error)
+            res.status(500).json({error : 'Internal error please try again'})
+        } else if(response.maintenanceFee === undefined) { 
+            res.status(401).json({message : 'This maintenanceFee not exist'})
+        } else {
+            res.status(200).json(response.maintenanceFee)
+        }
     })
 
 // MaintenanceFee List
 router.route('/list')
-    .get(authenticate.admin,(req, res) => {
-        MaintenanceFee.find({}, { _id : 0, claimingAgency : 1, electronicPaymentNum : 1, dueDate : 1, amountDue : 1 }, (err, result) => {
-            if(err) {
-                console.log(err)
-                res.status(500).json({error : "Internal error please try again"})
-            } else if(!result.length) {
-                res.status(401).json({message : 'This maintenanceFees not exist'})
-            } else {
-                res.status(200).json(result)
+    .get(authenticate.admin, async(req, res) => {
+        console.log('MaintenanceFee List...')
+
+        const MaintenanceFee = await wallet('maintenanceFee')
+
+        const request = {
+            contract : MaintenanceFee.contract
+        }
+
+        const response = await maintenanceFeeTx.readAllMaintenanceFee(request)
+
+        if (!response.result) {
+            console.log(response.error)
+            res.status(500).json({error : 'Internal error please try again'})
+        } else if(response.maintenanceFees === undefined) { 
+            res.status(401).json({message : 'This maintenanceFee not exist'})
+        } else {
+            let no = 1
+
+            const projection = {
+                email : 1,
+                claimingAgency : 1,
+                electronicPaymentNum : 1,
+                dueDate : 1,
+                amountDue : 1
             }
-        })
+            
+            for(let maintenanceFee of response.maintenanceFees){
+                selectProperties(maintenanceFee, projection)
+
+                maintenanceFee.no = no++
+            }
+
+            res.status(200).json(response.maintenanceFees)
+        }
     })
 
 module.exports = router;
