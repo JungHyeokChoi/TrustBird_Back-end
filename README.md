@@ -1,9 +1,12 @@
 # Project : Trust  Bird(Back-end)<br>
+
 <br>
      
+
 ## 1. What is Trust Bird?
 
 ###   TrustBird is a trust contract platform for lessee. 
+
 <br>
 
 
@@ -16,6 +19,7 @@
 
 
 ### - Using Port
+
 <br>
 
 |        Name         | Number |
@@ -76,7 +80,7 @@ cd ../../network
 ./network.sh up
 ```
 
-
+**Caution : All .sh files must have 755 permissions**
 
 #### - Chaincode Install & Instantiate
 
@@ -133,9 +137,29 @@ truffle migrate
 
 
 
-### F. Clean Up
+### F. Create .evn file
+
+```
+cd ..
+vim .env
+```
+
+![env](https://user-images.githubusercontent.com/65533287/106148829-df1e8f80-61bc-11eb-9886-522f740baee0.PNG)
+
+
+
+### G. Server Start
+
+```
+nodemon server.js
+```
+
+
+
+### H. Clean Up
 
 ```
 cd hyperledger_fabric/network
 ./network.sh down
 ```
+
