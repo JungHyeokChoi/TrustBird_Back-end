@@ -1,6 +1,6 @@
 #!/bin/bash
 
-export PATH=$GOPATH/src/github.com/hyperledger/fabric/build/bin:${PWD}/../bin:${PWD}:$PATH
+export PATH=$GOPAH/src/github.com/hyperledger/fabric/build/bin:${PWD}/bin:${PWD}:$PATH
 export FABRIC_CFG_PATH=${PWD}
 CHANNEL_NAME=mychannel
 
