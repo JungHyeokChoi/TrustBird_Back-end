@@ -16,6 +16,8 @@ function printHelp() {
   echo "      - 'explorerUp' - bring up the hyperledger explorer with docker-compose up"
   echo "      - 'explorerStop' - stop the hyperledger explorer with docker-compose down"
   echo "    -c <channel name> - channel name to use (defaults to \"mychannel\")"
+  echo "    -o <consensus-type> - the consensus-type of the ordering service: solo (default), kafka, or etcdraft"
+  echo "    -s <dbtype> - the database backend to use: goleveldb (default) or couchdb"
   echo
   echo "Taking all defaults:"
   echo "	network.sh generate"
@@ -65,7 +67,18 @@ function networkUp() {
   echo
   echo "===================== Create docker containers ====================="
   echo
-  docker-compose -f $COMPOSE_FILE -f $COMPOSE_FILE_COUCH -f $COMPOSE_FILE_CA up -d
+
+  COMPOSE_FILES="-f ${COMPOSE_FILE} -f ${COMPOSE_FILE_CA}"
+
+  if [ "${CONSENSUS_TYPE}" == "kafka" ]; then
+    COMPOSE_FILES="${COMPOSE_FILES} -f ${COMPOSE_FILE_KAFKA}"
+  fi
+
+  if [ "${IF_COUCHDB}" == "couchdb" ]; then
+    COMPOSE_FILES="${COMPOSE_FILES} -f ${COMPOSE_FILE_COUCH}"
+  fi
+
+  docker-compose $COMPOSE_FILES up -d
 
   echo
   docker ps -a
@@ -86,7 +99,7 @@ function networkDown() {
   echo "===================== Tear down running network ====================="
   echo
   
-  docker-compose -f $COMPOSE_FILE -f $COMPOSE_FILE_COUCH -f $COMPOSE_FILE_CA -f $COMPOSE_EXPLORER down -v
+  docker-compose -f $COMPOSE_FILE -f $COMPOSE_FILE_COUCH -f $COMPOSE_FILE_CA -f $COMPOSE_FILE_KAFKA -f $COMPOSE_EXPLORER down -v
 
   if [ "$MODE" != "restart" ]; then
     #Cleanup the chaincode containers
@@ -167,7 +180,20 @@ function generateChannel() {
   # Generating genesis block for orderer
   echo
   echo "Generating genesis block for orderer"
-  configtxgen -profile ThreeOrgOrdererGenesis -outputBlock ./config/genesis.block
+  echo
+  echo "CONSENSUS_TYPE="$CONSENSUS_TYPE
+  echo
+  
+  if [ "$CONSENSUS_TYPE" == "solo" ]; then
+    configtxgen -profile ThreeOrgOrdererGenesis -outputBlock ./config/genesis.block
+  elif [ "$CONSENSUS_TYPE" == "kafka" ]; then
+    configtxgen -profile SampleDevModeKafka -outputBlock ./config/genesis.block
+  else
+    set +x
+    echo "unrecognized CONSENSUS_TYPE='$CONSENSUS_TYPE'. exiting"
+    exit 1
+  fi
+
   if [ "$?" -ne 0 ]; then
     echo "Failed to generate orderer genesis block..."
     exit 1
@@ -250,11 +276,16 @@ function explorerStop() {
 COMPOSE_FILE=docker-compose-cli.yaml
 COMPOSE_FILE_COUCH=docker-compose-couch.yaml
 COMPOSE_FILE_CA=docker-compose-ca.yaml
+COMPOSE_FILE_KAFKA=docker-compose-kafka.yaml
 COMPOSE_EXPLORER=docker-compose-explorer.yaml
 
 CHANNEL_NAME="mychannel"
+CONSENSUS_TYPE="solo"
 
-while getopts "h?c" opt; do
+MODE=$1
+shift
+
+while getopts "h?c:o:s:" opt; do
   case "$opt" in
   h | \?)
     printHelp
@@ -263,10 +294,14 @@ while getopts "h?c" opt; do
   c)
     CHANNEL_NAME=$OPTARG
     ;;
+  o)
+    CONSENSUS_TYPE=$OPTARG
+    ;;
+  s)
+    IF_COUCHDB=$OPTARG
+    ;;
   esac
 done
-
-MODE=$1
 
 if [ "${MODE}" == "up" ]; then # Create the network using docker compose
   networkUp
